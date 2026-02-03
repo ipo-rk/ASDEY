@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - SIMASRA Asrama Kabupaten Deiyai</title>
+    <title>Login - SIMASRA Asrama Kabupaten Deiyai Kota Study Jayapura</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,18 +34,18 @@
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col transition-colors duration-300">
-    <!-- Navbar Atas (sama seperti dashboard) -->
+    <!-- Navbar Atas -->
     <header class="bg-white dark:bg-gray-800 shadow-sm">
         <div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
             <div class="flex items-center space-x-4">
                 <i class="fas fa-building text-3xl text-primary"></i>
                 <div>
                     <h1 class="text-xl font-bold">SIMASRA</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Asrama Kabupaten Deiyai</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Asrama Kabupaten Deiyai Kota Study
+                        Jayapura</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <!-- Tombol Dark/Light Mode (sama seperti dashboard) -->
                 <button @click="toggleDarkMode()"
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
                     <i x-show="!darkMode" class="fas fa-moon text-xl text-gray-600 dark:text-gray-300"></i>
@@ -65,7 +65,7 @@
                     <i class="fas fa-shield-alt text-6xl text-white opacity-90"></i>
                 </div>
                 <h1 class="text-3xl font-bold text-white">Login SIMASRA</h1>
-                <p class="text-white/80 mt-2">Akses Sistem Manajemen Asrama Kabupaten Deiyai</p>
+                <p class="text-white/80 mt-2">Akses Sistem Manajemen Asrama Kabupaten Deiyai Kota Study Jayapura</p>
             </div>
 
             <!-- Form -->
@@ -102,9 +102,11 @@
 
                     <!-- Remember Me -->
                     <div class="flex items-center">
-                        <input type="checkbox" x-model="form.remember"
+                        <input type="checkbox" x-model="form.remember" id="remember"
                             class="rounded border-gray-300 text-primary focus:ring-primary">
-                        <label class="ml-2 text-sm text-gray-600 dark:text-gray-400">Ingat saya</label>
+                        <label for="remember" class="ml-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                            Ingat saya
+                        </label>
                     </div>
 
                     <!-- Tombol Login -->
@@ -118,9 +120,9 @@
                 </form>
 
                 <!-- Link Tambahan -->
-                <div class="mt-6 text-center text-sm">
+                <div class="mt-6 text-center text-sm space-x-4">
                     <a href="#" class="text-primary hover:underline">Lupa kata sandi?</a>
-                    <span class="mx-2 text-gray-400">|</span>
+                    <span class="text-gray-400">|</span>
                     <a href="#" class="text-primary hover:underline">Hubungi Admin</a>
                 </div>
             </div>
@@ -136,13 +138,19 @@
                 showPassword: false,
                 loading: false,
                 form: {
-                    username: '',
+                    username: localStorage.getItem('rememberedUser') || '',
                     password: '',
-                    remember: false
+                    remember: !!localStorage.getItem('rememberedUser')
                 },
 
                 init() {
                     this.updateDarkMode();
+                    // Auto-focus username jika kosong
+                    if (!this.form.username) {
+                        this.$nextTick(() => {
+                            document.querySelector('input[x-model="form.username"]').focus();
+                        });
+                    }
                 },
 
                 updateDarkMode() {
@@ -156,7 +164,8 @@
                 },
 
                 handleLogin() {
-                    if (!this.form.username || !this.form.password) {
+                    // Validasi sederhana
+                    if (!this.form.username.trim() || !this.form.password.trim()) {
                         Swal.fire({
                             title: 'Perhatian',
                             text: 'Username dan kata sandi harus diisi',
@@ -168,21 +177,33 @@
 
                     this.loading = true;
 
-                    // Simulasi pengecekan login (ganti dengan fetch ke backend nanti)
+                    // Simulasi proses login (ganti dengan fetch API nanti jika ada backend)
                     setTimeout(() => {
                         this.loading = false;
 
-                        // Contoh login sederhana
-                        if (this.form.username.trim() === 'admin' && this.form.password === 'simasra2026') {
-                            // Simpan status login
+                        // Contoh kredensial sederhana (ganti dengan logika nyata)
+                        const validUsers = {
+                            'admin': 'simasra2026',
+                            'pengurus': 'deiyai2026'
+                        };
+
+                        const enteredUser = this.form.username.trim().toLowerCase();
+                        const enteredPass = this.form.password.trim();
+
+                        if (validUsers[enteredUser] && validUsers[enteredUser] === enteredPass) {
+                            // Login sukses
                             localStorage.setItem('isLoggedIn', 'true');
+
+                            // Remember username jika dicentang
                             if (this.form.remember) {
-                                localStorage.setItem('rememberedUser', this.form.username);
+                                localStorage.setItem('rememberedUser', enteredUser);
+                            } else {
+                                localStorage.removeItem('rememberedUser');
                             }
 
                             Swal.fire({
                                 title: 'Login Berhasil',
-                                text: 'Selamat datang kembali',
+                                text: `Selamat datang, ${enteredUser}!`,
                                 icon: 'success',
                                 confirmButtonColor: '#2563eb',
                                 timer: 1500,
@@ -198,7 +219,7 @@
                                 confirmButtonColor: '#2563eb'
                             });
                         }
-                    }, 1200);
+                    }, 1200); // Simulasi delay 1.2 detik
                 }
             }));
         });

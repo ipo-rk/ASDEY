@@ -1,0 +1,498 @@
+/* ==========================================================================
+   SIMASRA Dashboard – Final Elegant 2026 Style
+   Refined Glassmorphism + Subtle Animations + Premium Micro-interactions
+   Mobile-first • Scrollbar-free • Performant
+   ========================================================================== */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   ROOT VARIABLES
+   ========================================================================== */
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --primary-light: #60a5fa;
+  --primary-glow: rgba(59, 130, 246, 0.5);
+
+  --accent: #7c3aed;
+  --accent-dark: #6d28d9;
+  --accent-glow: rgba(124, 58, 237, 0.4);
+
+  /* Glassmorphism 2026 – refined opacity & blur */
+  --glass-bg: rgba(255, 255, 255, 0.36);
+  --glass-bg-dark: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-border-dark: rgba(255, 255, 255, 0.09);
+
+  --blur-sm: blur(10px);
+  --blur-md: blur(18px);
+  --blur-lg: blur(26px);
+
+  --shadow-glass: 0 10px 32px -8px rgba(0, 0, 0, 0.14);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+
+  --radius-sm: clamp(0.75rem, 3vw, 1rem);
+  --radius-md: clamp(1rem, 4vw, 1.375rem);
+  --radius-lg: clamp(1.25rem, 5vw, 1.875rem);
+
+  /* Easing premium */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1.2);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  --glass-bg: var(--glass-bg-dark);
+  --glass-border: var(--glass-border-dark);
+}
+
+/* ==========================================================================
+   GLOBAL RESET & SCROLLBAR HIDING
+   ========================================================================== */
+html,
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==========================================================================
+   BODY & BACKGROUND
+   ========================================================================== */
+body {
+  @apply min-h-screen antialiased;
+  background: linear-gradient(135deg, #f8fafc 0%, #e5e7eb 50%, #f1f5f9 100%);
+  background-attachment: fixed;
+  color: #0f172a;
+  font-size: clamp(0.975rem, 2.4vw, 1.075rem);
+  line-height: 1.68;
+  /* font-variation-settings: "wght" 460; */ /* uncomment jika pakai variable font */
+}
+
+.dark body {
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 60%, #334155 100%);
+  color: #e2e8f0;
+}
+
+/* ==========================================================================
+   GLASS CARD – Core component
+   ========================================================================== */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.45s var(--ease-spring);
+}
+
+@supports (hover: hover) and (pointer: fine) {
+  .glass-card:hover {
+    transform: translateY(-6px) scale(1.014);
+    box-shadow:
+      var(--shadow-glass),
+      0 0 28px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Optional premium pulse untuk card penting */
+.glass-card.breathe {
+  animation: breathe 3.2s infinite ease-in-out;
+}
+
+/* Tailwind common overrides */
+.bg-white,
+.dark\:bg-gray-800,
+.rounded-xl,
+.rounded-2xl,
+.shadow-md {
+  @apply glass-card;
+}
+
+/* ==========================================================================
+   LAYOUT – Sidebar, Header, Modal
+   ========================================================================== */
+aside {
+  @apply glass-card border-r-0 md:border-r;
+  border-right-color: var(--glass-border);
+  backdrop-filter: var(--blur-lg);
+}
+
+header {
+  @apply glass-card sticky top-0 z-40;
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: var(--blur-lg);
+}
+
+.fixed.inset-0.bg-black\/60 {
+  background: rgba(0, 0, 0, 0.58) !important;
+  backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  @apply glass-card w-full max-w-[92vw] sm:max-w-3xl mx-4 sm:mx-auto;
+  backdrop-filter: var(--blur-lg);
+  animation: modalReveal 0.55s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ==========================================================================
+   FORM ELEMENTS
+   ========================================================================== */
+input,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: var(--blur-sm);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 0.75rem 1.1rem;
+  font-size: 1rem;
+  transition: all 0.22s ease;
+  min-height: 50px;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background: rgba(30, 41, 59, 0.52);
+  border-color: rgba(255, 255, 255, 0.11);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   BUTTON PRIMARY
+   ========================================================================== */
+.btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.28);
+  padding: 0.8rem 2rem;
+  font-weight: 600;
+  font-size: 1.03rem;
+  min-height: 54px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 0.4s var(--ease-spring);
+}
+
+.btn-primary:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow:
+    0 16px 40px rgba(59, 130, 246, 0.45),
+    var(--shadow-glow);
+}
+
+.btn-primary:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: gradientFlow 5s linear infinite paused;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+/* Ripple (butuh JS untuk menambahkan .ripple span dynamically) */
+.btn-primary .ripple {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple 0.6s linear;
+}
+
+/* ==========================================================================
+   TABLES & SKELETON
+   ========================================================================== */
+.table-container {
+  @apply overflow-x-auto -mx-4 sm:-mx-0 pb-3;
+  -webkit-overflow-scrolling: touch;
+}
+
+thead th {
+  @apply px-5 py-3.5 text-xs sm:text-sm font-semibold uppercase tracking-wider;
+  background: rgba(243, 244, 246, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+.dark thead th {
+  background: rgba(30, 41, 59, 0.88);
+}
+
+tbody tr {
+  @apply glass-card transition-all duration-200;
+}
+
+tbody tr:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(200, 200, 200, 0.15) 25%,
+    rgba(200, 200, 200, 0.3) 50%,
+    rgba(200, 200, 200, 0.15) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+  border-radius: 0.75rem;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(80, 80, 80, 0.2) 25%,
+    rgba(120, 120, 120, 0.35) 50%,
+    rgba(80, 80, 80, 0.2) 75%
+  );
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+@keyframes modalReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-card {
+  animation: cardEnter 0.75s var(--ease-spring) backwards;
+}
+
+/* Stagger pada desktop */
+@media (min-width: 768px) {
+  .glass-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  .glass-card:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+  .glass-card:nth-child(3) {
+    animation-delay: 0.26s;
+  }
+  .glass-card:nth-child(4) {
+    animation-delay: 0.34s;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px rgba(124, 58, 237, 0);
+  }
+}
+
+/* Badge/notification pulse */
+.badge-pulse {
+  animation:
+    breathe 2.4s infinite ease-in-out,
+    pulse-glow 2s infinite;
+}
+
+/* Scroll reveal (butuh JS IntersectionObserver untuk .active) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: all 0.7s var(--ease-out);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+@layer utilities {
+  .fluid-padding {
+    padding: clamp(1.25rem, 5.5vw, 2.5rem);
+  }
+  .fluid-gap {
+    gap: clamp(1.125rem, 4.5vw, 2rem);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .animate-breathe {
+    animation: breathe 3.5s infinite ease-in-out;
+  }
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+}
+
+/* ==========================================================================
+   LOADER FULL-SCREEN – Glassmorphic & Elegant
+   ========================================================================== */
+.loader-container {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+
+.loader-spinner {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.loader-spinner::before,
+.loader-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 5px solid transparent;
+  box-sizing: border-box;
+}
+
+.loader-spinner::before {
+  border-top-color: var(--primary, #2563eb);
+  border-right-color: var(--primary, #2563eb);
+  animation: spin 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  box-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
+}
+
+.loader-spinner::after {
+  inset: 12px;
+  border-top-color: var(--accent, #7c3aed);
+  border-left-color: var(--accent, #7c3aed);
+  animation: spin-reverse 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  opacity: 0.7;
+}
+
+.loader-text {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* ==========================================================================
+   END – Ready for production
+   ========================================================================== */
