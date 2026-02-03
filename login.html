@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth" :class="{ 'dark': darkMode }" x-data="loginApp">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - SIMASRA Asrama Kabupaten Deiyai</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        primarydark: '#1d4ed8',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col transition-colors duration-300">
+    <!-- Navbar Atas (sama seperti dashboard) -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm">
+        <div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-building text-3xl text-primary"></i>
+                <div>
+                    <h1 class="text-xl font-bold">SIMASRA</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Asrama Kabupaten Deiyai</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Tombol Dark/Light Mode (sama seperti dashboard) -->
+                <button @click="toggleDarkMode()"
+                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i x-show="!darkMode" class="fas fa-moon text-xl text-gray-600 dark:text-gray-300"></i>
+                    <i x-show="darkMode" class="fas fa-sun text-xl text-yellow-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Login Form -->
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div
+            class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
+            <!-- Header Biru -->
+            <div class="bg-primary p-8 text-center">
+                <div class="flex justify-center mb-4">
+                    <i class="fas fa-shield-alt text-6xl text-white opacity-90"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white">Login SIMASRA</h1>
+                <p class="text-white/80 mt-2">Akses Sistem Manajemen Asrama Kabupaten Deiyai</p>
+            </div>
+
+            <!-- Form -->
+            <div class="p-8">
+                <form @submit.prevent="handleLogin" class="space-y-6">
+                    <!-- Username / Email -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Username / Email
+                        </label>
+                        <div class="relative">
+                            <input type="text" x-model="form.username" required autofocus
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white transition"
+                                placeholder="Masukkan username atau email">
+                            <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Kata Sandi
+                        </label>
+                        <div class="relative">
+                            <input :type="showPassword ? 'text' : 'password'" x-model="form.password" required
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white transition"
+                                placeholder="Masukkan kata sandi">
+                            <button type="button" @click="showPassword = !showPassword"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="flex items-center">
+                        <input type="checkbox" x-model="form.remember"
+                            class="rounded border-gray-300 text-primary focus:ring-primary">
+                        <label class="ml-2 text-sm text-gray-600 dark:text-gray-400">Ingat saya</label>
+                    </div>
+
+                    <!-- Tombol Login -->
+                    <button type="submit" :disabled="loading"
+                        class="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primarydark transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md">
+                        <span x-show="!loading">Masuk ke Dashboard</span>
+                        <span x-show="loading"
+                            class="animate-spin inline-block h-5 w-5 border-2 border-t-transparent border-white rounded-full"></span>
+                        <span x-show="loading">Memproses...</span>
+                    </button>
+                </form>
+
+                <!-- Link Tambahan -->
+                <div class="mt-6 text-center text-sm">
+                    <a href="#" class="text-primary hover:underline">Lupa kata sandi?</a>
+                    <span class="mx-2 text-gray-400">|</span>
+                    <a href="#" class="text-primary hover:underline">Hubungi Admin</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Alpine.js Logic -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('loginApp', () => ({
+                darkMode: localStorage.theme === 'dark' ||
+                    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+                showPassword: false,
+                loading: false,
+                form: {
+                    username: '',
+                    password: '',
+                    remember: false
+                },
+
+                init() {
+                    this.updateDarkMode();
+                },
+
+                updateDarkMode() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                    localStorage.theme = this.darkMode ? 'dark' : 'light';
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    this.updateDarkMode();
+                },
+
+                handleLogin() {
+                    if (!this.form.username || !this.form.password) {
+                        Swal.fire({
+                            title: 'Perhatian',
+                            text: 'Username dan kata sandi harus diisi',
+                            icon: 'warning',
+                            confirmButtonColor: '#2563eb'
+                        });
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    // Simulasi pengecekan login (ganti dengan fetch ke backend nanti)
+                    setTimeout(() => {
+                        this.loading = false;
+
+                        // Contoh login sederhana
+                        if (this.form.username.trim() === 'admin' && this.form.password === 'simasra2026') {
+                            // Simpan status login
+                            localStorage.setItem('isLoggedIn', 'true');
+                            if (this.form.remember) {
+                                localStorage.setItem('rememberedUser', this.form.username);
+                            }
+
+                            Swal.fire({
+                                title: 'Login Berhasil',
+                                text: 'Selamat datang kembali',
+                                icon: 'success',
+                                confirmButtonColor: '#2563eb',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.href = 'index.html';
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Login Gagal',
+                                text: 'Username atau kata sandi salah',
+                                icon: 'error',
+                                confirmButtonColor: '#2563eb'
+                            });
+                        }
+                    }, 1200);
+                }
+            }));
+        });
+    </script>
+</body>
+
+</html>

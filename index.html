@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SIMASRA - Dashboard Asrama Kabupaten Deiyai</title>
+
+    <!-- Tailwind CSS CDN (development only) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        primarydark: '#1d4ed8',
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        // Cek apakah sudah login
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            Swal.fire({
+                title: 'Akses Ditolak',
+                text: 'Silakan login terlebih dahulu',
+                icon: 'warning',
+                confirmButtonColor: '#2563eb',
+                allowOutsideClick: false,
+                showConfirmButton: true
+            }).then(() => {
+                window.location.href = 'login.html';
+            });
+        }
+    </script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Alpine.js Logic -->
+    <!-- <script src="asset/js/script2.js"></script> -->
+    <script src="asset/js/script.js"></script>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen" x-data="app"
+    @click="closeDropdowns($event)">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <aside x-show="sidebarOpen" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-300" x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+            class="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-xl md:static md:translate-x-0 flex flex-col">
+
+            <div class="p-6 border-b dark:border-gray-700 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-building text-3xl text-primary"></i>
+                    <div>
+                        <h1 class="text-xl font-bold">SIMASRA</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Asrama Kabupaten Deiyai</p>
+                    </div>
+                </div>
+                <button @click="sidebarOpen = false"
+                    class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 py-6 overflow-y-auto">
+                <ul class="space-y-1">
+                    <li>
+                        <button @click="setPage('dashboard')"
+                            :class="currentPage === 'dashboard' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-tachometer-alt w-6 mr-3"></i>
+                            Dashboard
+                        </button>
+                    </li>
+                    <li>
+                        <button @click="setPage('penghuni')"
+                            :class="currentPage === 'penghuni' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-users w-6 mr-3"></i>
+                            Data Penghuni
+                        </button>
+                    </li>
+                    <li>
+                        <button @click="setPage('kamar')"
+                            :class="currentPage === 'kamar' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-bed w-6 mr-3"></i>
+                            Manajemen Kamar
+                        </button>
+                    </li>
+                    <li>
+                        <button @click="setPage('asrama')"
+                            :class="currentPage === 'asrama' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-university w-6 mr-3"></i>
+                            Manajemen Asrama
+                        </button>
+                    </li>
+                    <li>
+                        <button @click="setPage('inventaris')"
+                            :class="currentPage === 'inventaris' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-boxes-stacked w-6 mr-3"></i>
+                            Inventaris
+                        </button>
+                    </li>
+                    <li>
+                        <button @click="setPage('laporan')"
+                            :class="currentPage === 'laporan' ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                            class="w-full text-left flex items-center px-4 py-3 rounded-lg transition">
+                            <i class="fas fa-chart-bar w-6 mr-3"></i>
+                            Laporan
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <button @click="Swal.fire({
+        title: 'Reset Semua Data?',
+        text: 'Ini akan menghapus SEMUA data permanen. Tidak dapat dibatalkan!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Hapus Semua!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('simasra_penghuni');
+            localStorage.removeItem('simasra_barak');
+            localStorage.removeItem('simasra_asrama');
+            localStorage.removeItem('simasra_inventaris');
+            location.reload();
+        }
+    })" class="text-red-600 hover:text-red-800 btn btn-danger m-6 w-auto px-4 py-2 border border-red-600 rounded-lg hover:bg-red-100 dark:hover:bg-light-700 transition">
+                Reset Semua Data ke Kondisi Awal
+            </button>
+            <div class="p-4 border-t dark:border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-10 h-10 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center text-primary font-bold">
+                        <img x-show="userProfile.photo" :src="userProfile.photo" alt="Foto Profil"
+                            class="w-full h-full object-cover">
+                        <template x-if="!userProfile.photo">
+                            <span x-text="userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'RR'"></span>
+                        </template>
+                    </div>
+                    <div>
+                        <p class="font-medium" x-text="userProfile.name || 'Richy Rizaldo'"></p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Pengurus Asrama</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- NAVBAR TOP -->
+            <header class="bg-white dark:bg-gray-800 shadow-sm">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <button @click="sidebarOpen = !sidebarOpen"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 md:hidden">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-semibold" x-text="
+                            currentPage === 'dashboard' ? 'Dashboard Penghuni Asrama Kabupaten Deiyai' :
+                            currentPage === 'penghuni'  ? 'Data Penghuni' :
+                            currentPage === 'kamar'     ? 'Manajemen Kamar' :
+                            currentPage === 'asrama'    ? 'Manajemen Asrama' :
+                            currentPage === 'inventaris'? 'Manajemen Inventaris' :
+                            currentPage === 'laporan'   ? 'Laporan & Statistik' : 'SIMASRA'
+                        "></h2>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <div class="relative dropdown">
+                            <button @click="toggleNotifications()"
+                                class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                            <div x-show="notificationsOpen" x-transition
+                                class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
+                                <div class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">Notifikasi
+                                </div>
+                                <ul class="divide-y dark:divide-gray-700">
+                                    <li class="px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Penghuni
+                                        baru: Yohanis Duwiri</li>
+                                    <li class="px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Kamar 205
+                                        penuh</li>
+                                    <li class="px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Laporan
+                                        triwulan siap diunduh</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button @click="toggleDarkMode()"
+                            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <i x-show="!darkMode" class="fas fa-moon"></i>
+                            <i x-show="darkMode" class="fas fa-sun"></i>
+                        </button>
+
+                        <div class="relative dropdown">
+                            <button @click="toggleProfile()"
+                                class="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <span class="text-sm hidden sm:block"
+                                    x-text="userProfile.name || 'Richy Rizaldo'"></span>
+                                <div
+                                    class="w-8 h-8 rounded-full overflow-hidden bg-primary text-white flex items-center justify-center font-bold">
+                                    <img x-show="userProfile.photo" :src="userProfile.photo" alt="Foto Profil"
+                                        class="w-full h-full object-cover">
+                                    <template x-if="!userProfile.photo">
+                                        <span
+                                            x-text="userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'RR'"></span>
+                                    </template>
+                                </div>
+                            </button>
+                            <div x-show="profileOpen" x-transition
+                                class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
+                                <button @click="openProfileModal('profile')"
+                                    class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Profil
+                                    Saya</button>
+                                <button @click="openProfileModal('settings')"
+                                    class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Pengaturan
+                                    Akun</button>
+                                <button @click="handleLogout()"
+                                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    Keluar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT - Sections -->
+            <main class="flex-1 overflow-y-auto p-6">
+
+                <!-- Dashboard -->
+                <section x-show="currentPage === 'dashboard'" x-transition.opacity.duration.300ms class="space-y-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Penghuni Aktif</p>
+                                    <p class="text-3xl font-bold mt-1">1.248</p>
+                                </div>
+                                <div class="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                                    <i class="fas fa-users text-3xl text-primary"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm mt-4 text-green-600 dark:text-green-400">↑ 4.2% dari bulan lalu</p>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Tingkat Hunian</p>
+                                    <p class="text-3xl font-bold mt-1">87%</p>
+                                </div>
+                                <div class="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
+                                    <i class="fas fa-bed text-3xl text-green-600 dark:text-green-400"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm mt-4 text-green-600 dark:text-green-400">↑ 2.1% dari bulan lalu</p>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Asrama Aktif</p>
+                                    <p class="text-3xl font-bold mt-1">18</p>
+                                </div>
+                                <div class="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                                    <i class="fas fa-building text-3xl text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Kamar Kosong</p>
+                                    <p class="text-3xl font-bold mt-1">42</p>
+                                </div>
+                                <div class="p-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
+                                    <i class="fas fa-door-open text-3xl text-yellow-600 dark:text-yellow-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div x-data="{ expanded: true }"
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Penghuni per Distrik (Top 5)</h3>
+                                <button @click="expanded = !expanded"
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                                    <i x-show="expanded" class="fas fa-chevron-up"></i>
+                                    <i x-show="!expanded" class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div x-show="expanded" x-transition>
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span>Tigi</span>
+                                            <span class="font-medium">512</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                            <div class="bg-primary h-2.5 rounded-full" style="width: 78%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span>Deiyai</span>
+                                            <span class="font-medium">428</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                            <div class="bg-primary h-2.5 rounded-full" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                    <!-- tambah lagi sesuai data real -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-data="{ expanded: true }"
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Aktivitas Terbaru</h3>
+                                <button @click="expanded = !expanded"
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                                    <i x-show="expanded" class="fas fa-chevron-up"></i>
+                                    <i x-show="!expanded" class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div x-show="expanded" x-transition>
+                                <ul class="space-y-3 text-sm">
+                                    <li class="flex justify-between">
+                                        <span>Yohanis Duwiri - Masuk Asrama Tigi Barat</span>
+                                        <span class="text-green-600">Baru masuk</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>Maria Kogoya - Pindah kamar 108 → 112</span>
+                                        <span class="text-blue-600">Pindah</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span>Daniel Wonda - Keluar (alumni)</span>
+                                        <span class="text-red-600">Keluar</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- === MODUL DATA PENGHUNI - Versi Konsisten & Akurat === -->
+                <section x-show="currentPage === 'penghuni'" x-transition.opacity.duration.300ms class="space-y-6">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-2xl font-bold">Data Penghuni Asrama Kabupaten Deiyai</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <button @click="openAddModal()"
+                                class="bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-primarydark transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-plus"></i> Tambah Penghuni Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH & FILTER BAR -->
+                    <div
+                        class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <!-- Pencarian Cepat -->
+                            <div class="lg:col-span-2">
+                                <label class="block text-sm font-medium mb-1.5">Pencarian Cepat</label>
+                                <input type="text" x-model="searchQuery"
+                                    placeholder="Cari NIK, Nama, NISN/NIM, Distrik..."
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            </div>
+
+                            <!-- Filter Jenjang -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Jenjang Pendidikan</label>
+                                <select x-model="filterJenjang"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Jenjang</option>
+                                    <option value="SMA">SMA/SMK/MA</option>
+                                    <option value="Mahasiswa">Mahasiswa (D3/S1/S2)</option>
+                                </select>
+                            </div>
+
+                            <!-- Filter Tahun Masuk -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Tahun Masuk</label>
+                                <select x-model="filterTahun"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Tahun</option>
+                                    <template x-for="year in availableYears">
+                                        <option :value="year" x-text="year"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <!-- Filter Status -->
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Status Penghuni</label>
+                                <select x-model="filterStatus"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Status</option>
+                                    <option value="aktif">Aktif</option>
+                                    <option value="keluar">Keluar</option>
+                                    <option value="alumni">Alumni</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL DATA PENghUNI -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left min-w-[1000px]">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">No</th>
+                                        <th class="px-6 py-4 font-medium">NIK</th>
+                                        <th class="px-6 py-4 font-medium">Nama Lengkap</th>
+                                        <th class="px-6 py-4 font-medium">Jenjang</th>
+                                        <th class="px-6 py-4 font-medium">Tahun Masuk</th>
+                                        <th class="px-6 py-4 font-medium">Asal Distrik</th>
+                                        <th class="px-6 py-4 font-medium">Status</th>
+                                        <th class="px-6 py-4 font-medium text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    <template x-for="(penghuni, index) in filteredPenghuni" :key="penghuni.nik">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                            <td class="px-6 py-4"
+                                                x-text="index + 1 + (currentPageTable - 1) * itemsPerPage"></td>
+                                            <td class="px-6 py-4 font-mono" x-text="penghuni.nik"></td>
+                                            <td class="px-6 py-4 font-medium" x-text="penghuni.nama"></td>
+                                            <td class="px-6 py-4" x-text="penghuni.jenjang"></td>
+                                            <td class="px-6 py-4 text-center" x-text="penghuni.tahun_masuk"></td>
+                                            <td class="px-6 py-4" x-text="penghuni.distrik"></td>
+                                            <td class="px-6 py-4">
+                                                <span :class="{
+                                    'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 px-3 py-1 rounded-full text-xs font-medium': penghuni.status === 'aktif',
+                                    'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 px-3 py-1 rounded-full text-xs font-medium': penghuni.status === 'keluar',
+                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium': penghuni.status === 'alumni'
+                                }" x-text="penghuni.status.charAt(0).toUpperCase() + penghuni.status.slice(1)"></span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center flex justify-center gap-4">
+                                                <button @click="openEditModal(penghuni)"
+                                                    class="text-blue-600 hover:text-blue-800 transition"
+                                                    title="Edit data penghuni">
+                                                    <i class="fas fa-edit text-lg"></i>
+                                                </button>
+                                                <button @click="showRiwayat(penghuni)"
+                                                    class="text-purple-600 hover:text-purple-800 transition"
+                                                    title="Riwayat penempatan kamar/barak">
+                                                    <i class="fas fa-history text-lg"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="filteredPenghuni.length === 0">
+                                        <td colspan="8"
+                                            class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-lg">
+                                            Tidak ada data penghuni yang sesuai dengan pencarian atau filter
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t dark:border-gray-700 gap-4"
+                            x-show="filteredPenghuni.length > 0">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Menampilkan <strong x-text="(currentPageTable - 1) * itemsPerPage + 1"></strong> –
+                                <strong
+                                    x-text="Math.min(currentPageTable * itemsPerPage, filteredPenghuni.length)"></strong>
+                                dari <strong x-text="filteredPenghuni.length"></strong> penghuni
+                            </p>
+                            <div class="flex gap-3">
+                                <button @click="currentPageTable--" :disabled="currentPageTable === 1"
+                                    class="px-5 py-2 rounded-lg border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                    Sebelumnya
+                                </button>
+                                <button @click="currentPageTable++"
+                                    :disabled="currentPageTable * itemsPerPage >= filteredPenghuni.length"
+                                    class="px-5 py-2 rounded-lg border dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                    Selanjutnya
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL TAMBAH / EDIT PENghUNI -->
+                    <div x-show="modalOpen"
+                        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+                        @click.away="modalOpen = false">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                            <div
+                                class="p-6 border-b dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                                <h4 class="text-2xl font-bold"
+                                    x-text="isEditMode ? 'Edit Data Penghuni' : 'Tambah Penghuni Baru'"></h4>
+                                <button @click="modalOpen = false"
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                    <i class="fas fa-times text-2xl"></i>
+                                </button>
+                            </div>
+
+                            <div class="p-6">
+                                <form @submit.prevent="savePenghuni" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">NIK <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" x-model="form.nik" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Nama Lengkap <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" x-model="form.nama" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">NISN / NIM</label>
+                                        <input type="text" x-model="form.nisn_nim"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Asal Distrik <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" x-model="form.distrik" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Jenjang Pendidikan <span
+                                                class="text-red-500">*</span></label>
+                                        <select x-model="form.jenjang" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">Pilih Jenjang</option>
+                                            <option value="SMA">SMA/SMK/MA</option>
+                                            <option value="Mahasiswa">Mahasiswa (D3/S1/S2)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Tahun Masuk <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="number" x-model="form.tahun_masuk" required min="2010" max="2030"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Jenis Kelamin</label>
+                                        <select x-model="form.jenis_kelamin"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">Pilih</option>
+                                            <option value="Laki-laki">Laki-laki</option>
+                                            <option value="Perempuan">Perempuan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">No. HP / WA</label>
+                                        <input type="tel" x-model="form.no_hp"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Status Penghuni <span
+                                                class="text-red-500">*</span></label>
+                                        <select x-model="form.status" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="aktif">Aktif</option>
+                                            <option value="keluar">Keluar</option>
+                                            <option value="alumni">Alumni</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium mb-1.5">Upload Foto KTP/KK/Surat
+                                            Rekomendasi (opsional)</label>
+                                        <input type="file" accept="image/*,.pdf" multiple
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        <p class="text-xs text-gray-500 mt-1.5">Maks 5MB per file - jpg/png/pdf</p>
+                                    </div>
+
+                                    <div class="md:col-span-2 flex justify-end gap-4 mt-6">
+                                        <button type="button" @click="modalOpen = false"
+                                            class="px-6 py-2.5 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                            Batal
+                                        </button>
+                                        <button type="submit"
+                                            class="bg-primary text-white px-8 py-2.5 rounded-lg hover:bg-primarydark transition shadow-md">
+                                            <span x-text="isEditMode ? 'Simpan Perubahan' : 'Tambah Penghuni'"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL RIWAYAT PENEMPATAN KAMAR / BARAK -->
+                    <div x-show="riwayatOpen"
+                        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+                        @click.away="riwayatOpen = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-xl w-full">
+                            <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center">
+                                <h4 class="text-2xl font-bold">
+                                    Riwayat Penempatan Barak/Kamar - <span x-text="selectedPenghuni?.nama"></span>
+                                </h4>
+                                <button @click="riwayatOpen = false"
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                    <i class="fas fa-times text-2xl"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-gray-50 dark:bg-gray-700">
+                                            <tr>
+                                                <th class="px-5 py-3 font-medium">No</th>
+                                                <th class="px-5 py-3 font-medium">Barak / Lantai / Sisi</th>
+                                                <th class="px-5 py-3 font-medium">Nomor Kamar</th>
+                                                <th class="px-5 py-3 font-medium">Periode</th>
+                                                <th class="px-5 py-3 font-medium">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y dark:divide-gray-700">
+                                            <template x-for="(entry, idx) in selectedRiwayat" :key="idx">
+                                                <tr>
+                                                    <td class="px-5 py-3" x-text="idx + 1"></td>
+                                                    <td class="px-5 py-3" x-text="entry.barak"></td>
+                                                    <td class="px-5 py-3" x-text="entry.kamar"></td>
+                                                    <td class="px-5 py-3" x-text="entry.periode"></td>
+                                                    <td class="px-5 py-3">
+                                                        <span class="px-3 py-1 rounded-full text-xs font-medium"
+                                                            :class="entry.status === 'aktif' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'">
+                                                            <span x-text="entry.status"></span>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="selectedRiwayat.length === 0">
+                                                <td colspan="5"
+                                                    class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+                                                    Belum ada riwayat penempatan kamar/barak
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Manajemen Kamar - 3 Lantai, setiap lantai 14 kamar (7 Kiri + 7 Kanan) -->
+                <section x-show="currentPage === 'kamar'" x-transition.opacity.duration.300ms class="space-y-6">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-2xl font-bold">Manajemen Kamar Barak Asrama</h3>
+                        <div class="flex flex-wrap gap-3">
+                            <button @click="openAssignModal()"
+                                class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primarydark transition flex items-center gap-2">
+                                <i class="fas fa-user-plus"></i> Assign Penghuni ke Barak
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FILTER & STATISTIK -->
+                    <div
+                        class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Filter Status Barak</label>
+                                <select x-model="filterStatusKamar"
+                                    class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Status</option>
+                                    <option value="kosong">Kosong</option>
+                                    <option value="terisi_sebagian">Terisi Sebagian</option>
+                                    <option value="penuh">Penuh</option>
+                                    <option value="maintenance">Maintenance</option>
+                                </select>
+                            </div>
+
+                            <div class="flex flex-wrap justify-center md:justify-end gap-8 text-center">
+                                <div>
+                                    <p class="text-3xl font-bold text-green-600 dark:text-green-400"
+                                        x-text="barakTerisi"></p>
+                                    <p class="text-sm">Barak Terisi</p>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400"
+                                        x-text="barakKosong"></p>
+                                    <p class="text-sm">Barak Kosong</p>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-blue-600 dark:text-blue-400" x-text="totalBarak">
+                                    </p>
+                                    <p class="text-sm">Total Barak (6 unit)</p>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-bold text-purple-600 dark:text-purple-400"
+                                        x-text="totalKamar"></p>
+                                    <p class="text-sm">Total Kamar (42)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL RINGKASAN PER BARAK -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left min-w-[900px]">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">No</th>
+                                        <th class="px-6 py-4 font-medium">Lantai</th>
+                                        <th class="px-6 py-4 font-medium">Sisi Barak</th>
+                                        <th class="px-6 py-4 font-medium">Rentang Nomor Kamar</th>
+                                        <th class="px-6 py-4 font-medium text-center">Kapasitas</th>
+                                        <th class="px-6 py-4 font-medium text-center">Terisi</th>
+                                        <th class="px-6 py-4 font-medium">Status</th>
+                                        <th class="px-6 py-4 font-medium text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    <template x-for="(barak, index) in filteredBarak" :key="barak.id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                            <td class="px-6 py-4"
+                                                x-text="index + 1 + (currentPageKamar - 1) * itemsPerPageKamar"></td>
+                                            <td class="px-6 py-4" x-text="barak.lantai"></td>
+                                            <td class="px-6 py-4 font-medium" x-text="barak.sisi"></td>
+                                            <td class="px-6 py-4" x-text="barak.rentangKamar"></td>
+                                            <td class="px-6 py-4 text-center" x-text="barak.kapasitas"></td>
+                                            <td class="px-6 py-4 text-center" x-text="barak.terisi"></td>
+                                            <td class="px-6 py-4">
+                                                <span :class="{
+                                    'bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium': barak.status === 'kosong',
+                                    'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium': barak.status === 'terisi_sebagian',
+                                    'bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium': barak.status === 'penuh',
+                                    'bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium': barak.status === 'maintenance'
+                                }" x-text="barak.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())"></span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center flex gap-4 justify-center">
+                                                <button @click="openDetailKamarModal(barak)"
+                                                    class="text-indigo-600 hover:text-indigo-800"
+                                                    title="Lihat detail setiap kamar">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button @click="openAssignModal(barak)"
+                                                    class="text-green-600 hover:text-green-800"
+                                                    :disabled="barak.status === 'penuh' || barak.status === 'maintenance'"
+                                                    title="Assign penghuni ke barak ini">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                                <button @click="showRiwayatKamar(barak)"
+                                                    class="text-purple-600 hover:text-purple-800"
+                                                    title="Riwayat penghuni">
+                                                    <i class="fas fa-history"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="filteredBarak.length === 0">
+                                        <td colspan="8" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
+                                            Tidak ada data barak yang sesuai dengan filter
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="px-6 py-4 flex items-center justify-between border-t dark:border-gray-700"
+                            x-show="filteredBarak.length > 0">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Menampilkan <span x-text="(currentPageKamar - 1) * itemsPerPageKamar + 1"></span> –
+                                <span
+                                    x-text="Math.min(currentPageKamar * itemsPerPageKamar, filteredBarak.length)"></span>
+                                dari <span x-text="filteredBarak.length"></span> barak
+                            </p>
+                            <div class="flex gap-2">
+                                <button @click="currentPageKamar--" :disabled="currentPageKamar === 1"
+                                    class="px-4 py-2 rounded border dark:border-gray-600 disabled:opacity-50">Sebelumnya</button>
+                                <button @click="currentPageKamar++"
+                                    :disabled="currentPageKamar * itemsPerPageKamar >= filteredBarak.length"
+                                    class="px-4 py-2 rounded border dark:border-gray-600 disabled:opacity-50">Selanjutnya</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL DETAIL KAMAR -->
+                    <div x-show="detailKamarOpen"
+                        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+                        @click.away="detailKamarOpen = false">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                            <div
+                                class="p-6 border-b dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                                <h4 class="text-2xl font-bold">
+                                    Detail Kamar di
+                                    <span
+                                        x-text="selectedDetailBarak ? selectedDetailBarak.sisi + ' – Lantai ' + selectedDetailBarak.lantai : ''"></span>
+                                </h4>
+                                <button @click="detailKamarOpen = false">
+                                    <i class="fas fa-times text-2xl text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                                    <template x-for="kamar in (selectedDetailBarak?.daftarKamar || [])"
+                                        :key="kamar.nomor">
+                                        <div class="p-4 border rounded-xl text-center shadow-sm" :class="{
+                            'bg-green-50 dark:bg-green-900/20 border-green-300': kamar.status === 'kosong',
+                            'bg-blue-50 dark:bg-blue-900/20 border-blue-300': kamar.status === 'terisi',
+                            'bg-red-50 dark:bg-red-900/20 border-red-300': kamar.status === 'penuh'
+                        }">
+                                            <p class="font-bold text-xl mb-1" x-text="kamar.nomor"></p>
+                                            <p class="text-sm font-medium"
+                                                x-text="kamar.penghuni ? kamar.penghuni : 'Kosong'"></p>
+                                            <p class="text-xs mt-2 uppercase tracking-wide font-semibold"
+                                                x-text="kamar.status"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div x-show="(selectedDetailBarak?.daftarKamar || []).length === 0"
+                                    class="text-center py-12 text-gray-500 dark:text-gray-400 text-lg">
+                                    Belum ada data kamar di barak ini
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL ASSIGN PENghUNI KE BARAK (PASTIKAN HANYA SATU SELECT INI) -->
+                    <div x-show="assignModalOpen"
+                        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        @click.away="assignModalOpen = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full">
+                            <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center">
+                                <h4 class="text-xl font-bold">
+                                    Assign Penghuni ke Barak
+                                    <span
+                                        x-text="selectedKamar ? selectedKamar.sisi + ' Lantai ' + selectedKamar.lantai : ''"></span>
+                                </h4>
+                                <button @click="assignModalOpen = false">
+                                    <i class="fas fa-times text-xl text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium mb-1">Pilih Penghuni (hanya aktif)</label>
+                                    <select x-model="selectedPenghuniId"
+                                        class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        <option value="">-- Pilih Penghuni --</option>
+                                        <template x-for="p in (penghuniAktifList || [])" :key="p.nik">
+                                            <option :value="p.nik"
+                                                x-text="`${p.nama || 'Nama tidak tersedia'} (${p.nik || 'NIK tidak tersedia'}) - ${p.jenjang || '-'}`">
+                                            </option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="flex justify-end gap-3 mt-6">
+                                    <button @click="assignModalOpen = false"
+                                        class="px-5 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        Batal
+                                    </button>
+                                    <button @click="assignPenghuni()" :disabled="!selectedPenghuniId"
+                                        :class="{ 'bg-red-500': !selectedPenghuniId, 'bg-primary': selectedPenghuniId }"
+                                        class="text-white px-6 py-2 rounded-lg hover:bg-primarydark transition disabled:opacity-50">
+                                        Assign Sekarang
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL RIWAYAT PENGHUNI DI BARAK -->
+                    <div x-show="riwayatKamarOpen"
+                        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        @click.away="riwayatKamarOpen = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full">
+                            <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center">
+                                <h4 class="text-xl font-bold">
+                                    Riwayat Penghuni di Barak
+                                    <span
+                                        x-text="selectedKamarRiwayat ? selectedKamarRiwayat.sisi + ' Lantai ' + selectedKamarRiwayat.lantai : ''"></span>
+                                </h4>
+                                <button @click="riwayatKamarOpen = false">
+                                    <i class="fas fa-times text-xl text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <ul class="space-y-4">
+                                    <template x-for="entry in (selectedRiwayatKamar || [])">
+                                        <li class="border-l-4 border-primary pl-4">
+                                            <p class="font-medium" x-text="entry.penghuni"></p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400" x-text="entry.periode">
+                                            </p>
+                                        </li>
+                                    </template>
+                                    <li x-show="(selectedRiwayatKamar || []).length === 0"
+                                        class="text-center text-gray-500 dark:text-gray-400 py-6">
+                                        Belum ada riwayat penghuni di barak ini
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- === MODUL MANAJEMEN ASRAMA === -->
+                <section x-show="currentPage === 'asrama'" x-transition.opacity.duration.300ms class="space-y-6">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-2xl font-bold">Manajemen Asrama Kabupaten Deiyai</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <button @click="openAddAsramaModal()"
+                                class="bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-primarydark transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-plus"></i> Tambah Asrama Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RINGKASAN STATISTIK -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-blue-600 dark:text-blue-400" x-text="asramaList.length">
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Jumlah Asrama</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-green-600 dark:text-green-400" x-text="totalKapasitas">
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Total Kapasitas</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-purple-600 dark:text-purple-400" x-text="totalPenghuni">
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Penghuni Saat Ini</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold"
+                                :class="hunianPersen > 90 ? 'text-red-600' : hunianPersen > 70 ? 'text-yellow-600' : 'text-green-600'"
+                                x-text="hunianPersen + '%'"></p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Tingkat Hunian</p>
+                        </div>
+                    </div>
+
+                    <!-- FILTER BAR -->
+                    <div
+                        class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Jenis Asrama</label>
+                                <select x-model="filterJenisAsrama"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="Putra">Putra</option>
+                                    <option value="Putri">Putri</option>
+                                    <option value="Campur">Campur</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Status</label>
+                                <select x-model="filterStatusAsrama"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Status</option>
+                                    <option value="aktif">Aktif</option>
+                                    <option value="nonaktif">Nonaktif</option>
+                                    <option value="renovasi">Renovasi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL DAFTAR ASRAMA -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">No</th>
+                                        <th class="px-6 py-4 font-medium">Nama Asrama</th>
+                                        <th class="px-6 py-4 font-medium">Jenis</th>
+                                        <th class="px-6 py-4 font-medium">Lokasi / Distrik</th>
+                                        <th class="px-6 py-4 font-medium text-center">Kapasitas</th>
+                                        <th class="px-6 py-4 font-medium text-center">Penghuni Saat Ini</th>
+                                        <th class="px-6 py-4 font-medium text-center">Hunian (%)</th>
+                                        <th class="px-6 py-4 font-medium">Status</th>
+                                        <th class="px-6 py-4 font-medium text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    <template x-for="(asrama, index) in filteredAsrama" :key="asrama.id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                            <td class="px-6 py-4" x-text="index + 1"></td>
+                                            <td class="px-6 py-4 font-medium" x-text="asrama.nama"></td>
+                                            <td class="px-6 py-4" x-text="asrama.jenis"></td>
+                                            <td class="px-6 py-4" x-text="asrama.distrik"></td>
+                                            <td class="px-6 py-4 text-center" x-text="asrama.kapasitas"></td>
+                                            <td class="px-6 py-4 text-center" x-text="asrama.penghuniSaatIni"></td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span :class="{
+        'text-green-600 dark:text-green-400': (asrama.hunian || 0) < 70,
+        'text-yellow-600 dark:text-yellow-400': (asrama.hunian || 0) >= 70 && (asrama.hunian || 0) < 90,
+        'text-red-600 dark:text-red-400': (asrama.hunian || 0) >= 90
+    }" x-text="(asrama.hunian || 0) + '%'"></span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span :class="{
+                                    'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300': asrama.status === 'aktif',
+                                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300': asrama.status === 'nonaktif',
+                                    'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300': asrama.status === 'renovasi'
+                                }" class="px-3 py-1 rounded-full text-xs font-medium">
+                                                    <span
+                                                        x-text="asrama.status.charAt(0).toUpperCase() + asrama.status.slice(1)"></span>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center flex justify-center gap-4">
+                                                <button @click="openEditAsramaModal(asrama)"
+                                                    class="text-blue-600 hover:text-blue-800 transition"
+                                                    title="Edit asrama">
+                                                    <i class="fas fa-edit text-lg"></i>
+                                                </button>
+                                                <button @click="showDetailAsrama(asrama)"
+                                                    class="text-indigo-600 hover:text-indigo-800 transition"
+                                                    title="Detail & daftar penghuni">
+                                                    <i class="fas fa-eye text-lg"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="filteredAsrama.length === 0">
+                                        <td colspan="9"
+                                            class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-lg">
+                                            Tidak ada data asrama yang sesuai dengan filter
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- MODAL TAMBAH / EDIT ASRAMA -->
+                    <div x-show="asramaModalOpen"
+                        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+                        @click.away="asramaModalOpen = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-xl w-full">
+                            <div class="p-6 border-b dark:border-gray-700 flex justify-between items-center">
+                                <h4 class="text-2xl font-bold"
+                                    x-text="isEditAsrama ? 'Edit Data Asrama' : 'Tambah Asrama Baru'"></h4>
+                                <button @click="asramaModalOpen = false">
+                                    <i class="fas fa-times text-2xl text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <form @submit.prevent="saveAsrama" class="space-y-5">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Nama Asrama <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" x-model="asramaForm.nama" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Jenis Asrama <span
+                                                class="text-red-500">*</span></label>
+                                        <select x-model="asramaForm.jenis" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">Pilih Jenis</option>
+                                            <option value="Putra">Putra</option>
+                                            <option value="Putri">Putri</option>
+                                            <option value="Campur">Campur</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Lokasi / Distrik <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="text" x-model="asramaForm.distrik" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Kapasitas Total (orang) <span
+                                                class="text-red-500">*</span></label>
+                                        <input type="number" x-model="asramaForm.kapasitas" required min="1"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Status</label>
+                                        <select x-model="asramaForm.status"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="aktif">Aktif</option>
+                                            <option value="nonaktif">Nonaktif</option>
+                                            <option value="renovasi">Renovasi</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="flex justify-end gap-4 mt-6">
+                                        <button type="button" @click="asramaModalOpen = false"
+                                            class="px-6 py-2.5 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                            Batal
+                                        </button>
+                                        <button type="submit"
+                                            class="bg-primary text-white px-8 py-2.5 rounded-lg hover:bg-primarydark transition">
+                                            <span x-text="isEditAsrama ? 'Simpan Perubahan' : 'Tambah Asrama'"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+
+                <!-- === MODUL MANAJEMEN INVENTARIS - Dengan Nomor Kamar === -->
+                <section x-show="currentPage === 'inventaris'" x-transition.opacity.duration.300ms class="space-y-6">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-2xl font-bold">Manajemen Inventaris Asrama Kabupaten Deiyai</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <button @click="openAddInventarisModal()"
+                                class="bg-primary text-white px-5 py-2.5 rounded-lg hover:bg-primarydark transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-plus"></i> Tambah Inventaris Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RINGKASAN KONDISI -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-green-600 dark:text-green-400" x-text="persenBaik + '%'">
+                            </p>
+                            <p class="text-lg font-medium mt-2">Kondisi Baik</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-yellow-600 dark:text-yellow-400"
+                                x-text="persenRusakRingan + '%'"></p>
+                            <p class="text-lg font-medium mt-2">Rusak Ringan</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-red-600 dark:text-red-400"
+                                x-text="persenRusakBerat + '%'"></p>
+                            <p class="text-lg font-medium mt-2">Rusak Berat / Hilang</p>
+                        </div>
+                    </div>
+
+                    <!-- FILTER -->
+                    <div
+                        class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Filter Barak / Lantai</label>
+                                <select x-model="filterBarakInventaris"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Barak</option>
+                                    <template x-for="b in barak" :key="b.id">
+                                        <option :value="b.id" x-text="b.sisi + ' – Lantai ' + b.lantai"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Jenis Inventaris</label>
+                                <select x-model="filterJenisInventaris"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="tempat tidur">Tempat Tidur</option>
+                                    <option value="lemari">Lemari</option>
+                                    <option value="meja">Meja & Kursi</option>
+                                    <option value="kipas">Kipas / AC</option>
+                                    <option value="lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL INVENTARIS -->
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left min-w-[1100px]">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-6 py-4 font-medium">No</th>
+                                        <th class="px-6 py-4 font-medium">Barak / Lantai / Sisi</th>
+                                        <th class="px-6 py-4 font-medium">Nomor Kamar</th>
+                                        <th class="px-6 py-4 font-medium">Jenis Barang</th>
+                                        <th class="px-6 py-4 font-medium text-center">Jumlah Total</th>
+                                        <th class="px-6 py-4 font-medium text-center">Baik</th>
+                                        <th class="px-6 py-4 font-medium text-center">Rusak Ringan</th>
+                                        <th class="px-6 py-4 font-medium text-center">Rusak Berat</th>
+                                        <th class="px-6 py-4 font-medium">Catatan</th>
+                                        <th class="px-6 py-4 font-medium text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    <template x-for="(item, index) in filteredInventaris" :key="item.id">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                            <td class="px-6 py-4" x-text="index + 1"></td>
+                                            <td class="px-6 py-4" x-text="item.barak"></td>
+                                            <td class="px-6 py-4 font-medium" x-text="item.nomorKamar || '-'"></td>
+                                            <td class="px-6 py-4" x-text="item.jenis"></td>
+                                            <td class="px-6 py-4 text-center" x-text="item.jumlahTotal"></td>
+                                            <td class="px-6 py-4 text-center text-green-600 dark:text-green-400"
+                                                x-text="item.baik"></td>
+                                            <td class="px-6 py-4 text-center text-yellow-600 dark:text-yellow-400"
+                                                x-text="item.rusakRingan"></td>
+                                            <td class="px-6 py-4 text-center text-red-600 dark:text-red-400"
+                                                x-text="item.rusakBerat"></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400"
+                                                x-text="item.catatan || '-'"></td>
+                                            <td class="px-6 py-4 text-center">
+                                                <button @click="openEditInventarisModal(item)"
+                                                    class="text-blue-600 hover:text-blue-800 transition"
+                                                    title="Edit kondisi">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="filteredInventaris.length === 0">
+                                        <td colspan="10"
+                                            class="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-lg">
+                                            Tidak ada data inventaris yang sesuai dengan filter
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- MODAL TAMBAH / EDIT INVENTARIS -->
+                    <div x-show="inventarisModalOpen"
+                        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+                        @click.away="inventarisModalOpen = false">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                            <div
+                                class="p-6 border-b dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                                <h4 class="text-2xl font-bold"
+                                    x-text="isEditInventaris ? 'Edit Kondisi Inventaris' : 'Tambah Inventaris Baru'">
+                                </h4>
+                                <button @click="inventarisModalOpen = false">
+                                    <i class="fas fa-times text-2xl text-gray-500"></i>
+                                </button>
+                            </div>
+                            <div class="p-6 space-y-5">
+                                <form @submit.prevent="saveInventaris">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Pilih Barak / Lantai</label>
+                                        <select x-model="inventarisForm.barakId" @change="updateDaftarKamar()" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">-- Pilih Barak --</option>
+                                            <template x-for="b in barak" :key="b.id">
+                                                <option :value="b.id" x-text="b.sisi + ' – Lantai ' + b.lantai">
+                                                </option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Pilih Nomor Kamar</label>
+                                        <select x-model="inventarisForm.nomorKamar" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">-- Pilih Kamar --</option>
+                                            <template x-for="k in daftarKamarPilihan" :key="k.nomor">
+                                                <option :value="k.nomor"
+                                                    x-text="k.nomor + (k.penghuni ? ' - ' + k.penghuni : ' (Kosong)')">
+                                                </option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Jenis Barang <span
+                                                class="text-red-500">*</span></label>
+                                        <select x-model="inventarisForm.jenis" required
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="">Pilih Jenis</option>
+                                            <option value="tempat tidur">Tempat Tidur</option>
+                                            <option value="lemari">Lemari</option>
+                                            <option value="meja">Meja & Kursi</option>
+                                            <option value="kipas">Kipas / AC</option>
+                                            <option value="lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1.5">Jumlah Total <span
+                                                    class="text-red-500">*</span></label>
+                                            <input type="number" x-model="inventarisForm.jumlahTotal" required min="1"
+                                                class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1.5">Baik</label>
+                                            <input type="number" x-model="inventarisForm.baik" min="0" required
+                                                class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1.5">Rusak Ringan</label>
+                                            <input type="number" x-model="inventarisForm.rusakRingan" min="0" required
+                                                class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1.5">Rusak Berat / Hilang</label>
+                                            <input type="number" x-model="inventarisForm.rusakBerat" min="0" required
+                                                class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1.5">Catatan / Keterangan</label>
+                                        <textarea x-model="inventarisForm.catatan" rows="3"
+                                            class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
+                                    </div>
+
+                                    <div class="flex justify-end gap-4 mt-6">
+                                        <button type="button" @click="inventarisModalOpen = false"
+                                            class="px-6 py-2.5 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                            Batal
+                                        </button>
+                                        <button type="submit"
+                                            class="bg-primary text-white px-8 py-2.5 rounded-lg hover:bg-primarydark transition">
+                                            <span
+                                                x-text="isEditInventaris ? 'Simpan Perubahan' : 'Tambah Inventaris'"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- === MODUL LAPORAN & STATISTIK === -->
+                <section x-show="currentPage === 'laporan'" x-transition.opacity.duration.300ms class="space-y-8">
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <h3 class="text-2xl font-bold">Laporan & Statistik Asrama Kabupaten Deiyai</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <button @click="exportPDF()"
+                                class="bg-red-600 text-white px-5 py-2.5 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                            <button @click="exportExcel()"
+                                class="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RINGKASAN STATISTIK UTAMA -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <!-- Penghuni Aktif Saat Ini -->
+                            <p class="text-4xl font-bold text-primary" x-text="penghuniAktif"></p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Penghuni Aktif Saat Ini</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <p class="text-4xl font-bold text-green-600 dark:text-green-400"
+                                x-text="hunianPersen + '%'"></p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Tingkat Hunian Keseluruhan</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <!-- Alumni Tahun Ini -->
+                            <p class="text-4xl font-bold text-purple-600 dark:text-purple-400" x-text="alumniTahunIni">
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Alumni Tahun Ini</p>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                            <!-- Kamar / Barak Kosong -->
+                            <p class="text-4xl font-bold text-yellow-600 dark:text-yellow-400" x-text="kamarKosong"></p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Kamar / Barak Kosong</p>
+                        </div>
+                    </div>
+
+                    <!-- FILTER PERIODE -->
+                    <div
+                        class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Periode Laporan</label>
+                                <select x-model="filterPeriode"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="bulan">Bulanan</option>
+                                    <option value="triwulan">Triwulan</option>
+                                    <option value="tahunan">Tahunan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Tahun</label>
+                                <select x-model="filterTahunLaporan"
+                                    class="w-full px-4 py-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Pilih Tahun</option>
+                                    <template x-for="year in availableYearsLaporan" :key="year">
+                                        <option :value="year" x-text="year"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="flex items-end">
+                                <button @click="generateLaporan()"
+                                    class="bg-primary text-white px-6 py-2.5 rounded-lg hover:bg-primarydark transition w-full md:w-auto">
+                                    Generate Laporan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JENIS LAPORAN & PREVIEW -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Card Laporan 1 -->
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="p-6 border-b dark:border-gray-700">
+                                <h4 class="text-lg font-semibold">Jumlah Penghuni Aktif per Distrik</h4>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-3">
+                                    <template x-for="(item, idx) in laporanDistrik" :key="idx">
+                                        <div class="flex justify-between items-center">
+                                            <span x-text="item.distrik"></span>
+                                            <span class="font-medium" x-text="item.jumlah + ' orang'"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Laporan 2 -->
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="p-6 border-b dark:border-gray-700">
+                                <h4 class="text-lg font-semibold">Statistik Penghuni per Jenjang Pendidikan</h4>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-3">
+                                    <template x-for="(item, idx) in laporanJenjang" :key="idx">
+                                        <div class="flex justify-between items-center">
+                                            <span x-text="item.jenjang"></span>
+                                            <span class="font-medium" x-text="item.jumlah + ' orang'"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Laporan 3 -->
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="p-6 border-b dark:border-gray-700">
+                                <h4 class="text-lg font-semibold">Laporan Hunian Bulanan / Triwulan</h4>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-gray-600 dark:text-gray-400">Rata-rata hunian bulan ini:
+                                    <span class="font-bold text-primary" x-text="hunianPersen + '%'"></span>
+                                </p>
+                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">(Data detail akan muncul
+                                    setelah generate)</p>
+                            </div>
+                        </div>
+
+                        <!-- Card Laporan 4 -->
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div class="p-6 border-b dark:border-gray-700">
+                                <h4 class="text-lg font-semibold">Daftar Alumni Tahun Ini</h4>
+                            </div>
+                            <div class="p-6">
+                                <p class="text-2xl font-bold text-center text-purple-600 dark:text-purple-400"
+                                    x-text="alumniTahunIni"></p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">Orang telah lulus /
+                                    pindah</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+
+    <!-- MODAL PROFIL SAYA & PENGATURAN AKUN -->
+    <div x-show="profileModalOpen"
+        class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
+        @click.away="profileModalOpen = false">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <!-- Header Modal -->
+            <div
+                class="p-6 border-b dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800 z-10">
+                <h3 class="text-2xl font-bold">Pengaturan Akun</h3>
+                <button @click="profileModalOpen = false">
+                    <i class="fas fa-times text-2xl text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"></i>
+                </button>
+            </div>
+
+            <!-- Tab Switch -->
+            <div class="flex border-b dark:border-gray-700">
+                <button @click="activeTab = 'profile'"
+                    :class="activeTab === 'profile' ? 'border-b-2 border-primary text-primary font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'"
+                    class="flex-1 py-4 px-6 text-center font-medium transition">
+                    Profil Saya
+                </button>
+                <button @click="activeTab = 'settings'"
+                    :class="activeTab === 'settings' ? 'border-b-2 border-primary text-primary font-semibold' : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'"
+                    class="flex-1 py-4 px-6 text-center font-medium transition">
+                    Pengaturan Akun
+                </button>
+            </div>
+
+            <!-- Isi Modal -->
+            <div class="p-6">
+                <!-- Tab Profil Saya -->
+                <div x-show="activeTab === 'profile'" x-transition.opacity.duration.300ms>
+                    <form @submit.prevent="saveProfile" class="space-y-6">
+                        <!-- Foto Profil -->
+                        <div class="flex flex-col items-center">
+                            <div class="relative w-32 h-32 mb-4 group">
+                                <img :src="userProfile.photo || 'https://ui-avatars.com/api/?name=' + (userProfile.name || 'Richy Rizaldo') + '&background=2563eb&color=fff&size=128'"
+                                    class="w-full h-full rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg transition group-hover:scale-105">
+                                <label for="photo-upload"
+                                    class="absolute bottom-0 right-0 bg-primary text-white p-3 rounded-full cursor-pointer hover:bg-primarydark transition shadow-md opacity-0 group-hover:opacity-100">
+                                    <i class="fas fa-camera"></i>
+                                </label>
+                                <input type="file" id="photo-upload" accept="image/*" class="hidden"
+                                    @change="uploadPhoto">
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Klik ikon kamera untuk mengganti foto
+                            </p>
+                        </div>
+
+                        <!-- Nama Lengkap -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nama
+                                Lengkap <span class="text-red-500">*</span></label>
+                            <input type="text" x-model="userProfile.name" required
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email <span
+                                    class="text-red-500">*</span></label>
+                            <input type="email" x-model="userProfile.email" required
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                        </div>
+
+                        <!-- No HP / WA -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">No. HP /
+                                WA</label>
+                            <input type="tel" x-model="userProfile.phone" placeholder="0812-3456-7890"
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                        </div>
+
+                        <!-- Tombol Simpan -->
+                        <div class="flex justify-end mt-10">
+                            <button type="submit" :disabled="saving"
+                                class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primarydark disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-3 shadow-md transition">
+                                <span x-show="!saving">Simpan Perubahan</span>
+                                <span x-show="saving"
+                                    class="animate-spin h-5 w-5 border-2 border-t-transparent border-white rounded-full"></span>
+                                <span x-show="saving">Menyimpan...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Pengaturan Akun -->
+                <div x-show="activeTab === 'settings'" x-transition.opacity.duration.300ms>
+                    <form @submit.prevent="saveSettings" class="space-y-8">
+                        <!-- Ganti Kata Sandi -->
+                        <div
+                            class="space-y-5 bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Ganti Kata Sandi</h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kata
+                                    Sandi Lama <span class="text-red-500">*</span></label>
+                                <input type="password" x-model="settings.oldPassword" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Kata
+                                    Sandi Baru <span class="text-red-500">*</span></label>
+                                <input type="password" x-model="settings.newPassword" required minlength="6"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Konfirmasi
+                                    Kata Sandi Baru <span class="text-red-500">*</span></label>
+                                <input type="password" x-model="settings.confirmPassword" required
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
+                            </div>
+                        </div>
+
+                        <!-- Preferensi -->
+                        <div class="space-y-5">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Preferensi</h4>
+                            <div class="flex items-center justify-between py-3">
+                                <span class="text-gray-700 dark:text-gray-300">Mode Gelap (Dark Mode)</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="darkMode" class="sr-only peer">
+                                    <div
+                                        class="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between py-3">
+                                <span class="text-gray-700 dark:text-gray-300">Notifikasi Email</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="settings.emailNotifications" class="sr-only peer">
+                                    <div
+                                        class="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary">
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Simpan -->
+                        <div class="flex justify-end mt-10">
+                            <button type="submit" :disabled="saving"
+                                class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-primarydark disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-3 shadow-md transition">
+                                <span x-show="!saving">Simpan Pengaturan</span>
+                                <span x-show="saving"
+                                    class="animate-spin h-5 w-5 border-2 border-t-transparent border-white rounded-full"></span>
+                                <span x-show="saving">Menyimpan...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
