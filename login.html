@@ -137,6 +137,7 @@
                     (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
                 showPassword: false,
                 loading: false,
+                errorMessage: '',
                 form: {
                     username: localStorage.getItem('rememberedUser') || '',
                     password: '',
@@ -145,10 +146,10 @@
 
                 init() {
                     this.updateDarkMode();
-                    // Auto-focus username jika kosong
                     if (!this.form.username) {
                         this.$nextTick(() => {
-                            document.querySelector('input[x-model="form.username"]').focus();
+                            const input = document.querySelector('input[x-model="form.username"]');
+                            if (input) input.focus();
                         });
                     }
                 },
@@ -163,63 +164,54 @@
                     this.updateDarkMode();
                 },
 
-                handleLogin() {
-                    // Validasi sederhana
+                async handleLogin() {
+                    this.errorMessage = '';
                     if (!this.form.username.trim() || !this.form.password.trim()) {
-                        Swal.fire({
-                            title: 'Perhatian',
-                            text: 'Username dan kata sandi harus diisi',
-                            icon: 'warning',
-                            confirmButtonColor: '#2563eb'
-                        });
+                        this.errorMessage = 'Username dan kata sandi harus diisi';
                         return;
                     }
 
                     this.loading = true;
 
-                    // Simulasi proses login (ganti dengan fetch API nanti jika ada backend)
-                    setTimeout(() => {
-                        this.loading = false;
+                    // Simulasi API delay
+                    await new Promise(resolve => setTimeout(resolve, 1000));
 
-                        // Contoh kredensial sederhana (ganti dengan logika nyata)
-                        const validUsers = {
-                            'admin': 'simasra2026',
-                            'pengurus': 'deiyai2026'
-                        };
+                    const validUsers = {
+                        'admin': 'simasra2026',
+                        'pengurus': 'deiyai2026'
+                    };
 
-                        const enteredUser = this.form.username.trim().toLowerCase();
-                        const enteredPass = this.form.password.trim();
+                    const enteredUser = this.form.username.trim().toLowerCase();
+                    const enteredPass = this.form.password.trim();
 
-                        if (validUsers[enteredUser] && validUsers[enteredUser] === enteredPass) {
-                            // Login sukses
-                            localStorage.setItem('isLoggedIn', 'true');
+                    if (validUsers[enteredUser] && validUsers[enteredUser] === enteredPass) {
+                        // Login berhasil
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('loggedInUser', enteredUser);
 
-                            // Remember username jika dicentang
-                            if (this.form.remember) {
-                                localStorage.setItem('rememberedUser', enteredUser);
-                            } else {
-                                localStorage.removeItem('rememberedUser');
-                            }
-
-                            Swal.fire({
-                                title: 'Login Berhasil',
-                                text: `Selamat datang, ${enteredUser}!`,
-                                icon: 'success',
-                                confirmButtonColor: '#2563eb',
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                window.location.href = 'index.html';
-                            });
+                        if (this.form.remember) {
+                            localStorage.setItem('rememberedUser', enteredUser);
                         } else {
-                            Swal.fire({
-                                title: 'Login Gagal',
-                                text: 'Username atau kata sandi salah',
-                                icon: 'error',
-                                confirmButtonColor: '#2563eb'
-                            });
+                            localStorage.removeItem('rememberedUser');
                         }
-                    }, 1200); // Simulasi delay 1.2 detik
+
+                        Swal.fire({
+                            title: 'Login Berhasil',
+                            text: `Selamat datang kembali, ${enteredUser}!`,
+                            icon: 'success',
+                            timer: 1400,
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            position: 'center'          // ← ini yang penting untuk memastikan center
+                        }).then(() => {
+                            window.location.replace('index.html');
+                        });
+                    } else {
+                        this.errorMessage = 'Username atau kata sandi salah';
+                    }
+
+                    this.loading = false;
                 }
             }));
         });

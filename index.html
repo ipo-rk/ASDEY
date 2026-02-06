@@ -2210,38 +2210,81 @@
             }));
         });
     </script>
-    <!-- PENGECEKAN LOGIN – WAJIB LOGIN SEBELUM MASUK DASHBOARD -->
+
     <script>
-        // Tunggu seluruh halaman selesai dimuat (termasuk Alpine.js dan SweetAlert2)
-        window.addEventListener('load', function () {
-            // Cek apakah user sudah login (dari localStorage)
-            if (localStorage.getItem('isLoggedIn') !== 'true') {
-                // Jika belum login, tampilkan alert dan redirect ke login.html
+        // ──────────────────────────────────────────────
+        // GLOBAL AUTH GUARD – HARUS ADA DI SEMUA HALAMAN PROTECTED
+        // ──────────────────────────────────────────────
+        (function enforceLogin() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const currentPath = window.location.pathname;
+
+            // Jika bukan di halaman login dan belum login → redirect
+            if (!isLoggedIn && !currentPath.includes('login.html')) {
+                // Simpan URL yang ingin diakses (untuk redirect setelah login nanti – optional)
+                sessionStorage.setItem('redirectAfterLogin', currentPath);
+
                 Swal.fire({
-                    title: 'Akses Ditolak',
-                    text: 'Anda harus login terlebih dahulu untuk mengakses dashboard SIMASRA',
                     icon: 'warning',
-                    confirmButtonColor: '#2563eb',
-                    confirmButtonText: 'Ke Halaman Login',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    allowEnterKey: false,
-                    showCloseButton: false
-                }).then((result) => {
-                    // Redirect ke halaman login setelah tombol ditekan
-                    if (result.isConfirmed) {
-                        window.location.href = 'login.html';
-                    }
+                    title: 'Sesi Tidak Aktif',
+                    text: 'Silakan login terlebih dahulu',
+                    timer: 2200,
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                }).then(() => {
+                    window.location.replace('login.html');
                 });
+
+                // Hentikan eksekusi script lebih lanjut
+                throw new Error('AUTH_REQUIRED');  // ini akan menghentikan Alpine init juga
             }
-            // Jika sudah login → lanjut normal (Alpine.js akan dijalankan)
-        });
+
+            // Jika sudah login tapi mencoba akses login.html → redirect ke dashboard
+            if (isLoggedIn && currentPath.includes('login.html')) {
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
+
+
+    <!-- 
+    AUTH GUARD – WAJIB ADA DI SEMUA HALAMAN YANG HARUS LOGIN
+    Letakkan di paling atas body atau di head (sebelum Alpine init)
+-->
+    <script>
+        (function requireLogin() {
+            // Cek status login dari localStorage
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+            if (!isLoggedIn) {
+                // Simpan halaman yang ingin diakses (opsional – untuk redirect setelah login sukses)
+                sessionStorage.setItem('intendedUrl', window.location.href);
+
+                // Tampilkan pesan singkat (opsional – bisa dihapus jika ingin langsung redirect tanpa Swal)
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Akses Ditolak',
+                        text: 'Silakan login terlebih dahulu',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    });
+                }
+
+                // Redirect langsung (gunakan replace agar tidak bisa kembali dengan tombol back)
+                window.location.replace('login.html');
+
+                // Hentikan eksekusi JavaScript lebih lanjut (penting!)
+                throw new Error('AUTH_REQUIRED');
+            }
+
+            // Jika sudah login → lanjutkan normal (Alpine akan jalan)
+            console.log('Login check passed – user authenticated');
+        })();
     </script>
 
 </body>
-
-</html>
-</body>
-
 
 </html>

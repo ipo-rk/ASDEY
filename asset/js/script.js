@@ -367,6 +367,22 @@ document.addEventListener('alpine:init', () => {
         // Init
         // ──────────────────────────────────────────────
         init() {
+            // ── TAMBAHKAN INI DI BARIS PERTAMA init() ────────
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn || isLoggedIn !== 'true') {   // atau pakai token kalau nanti upgrade
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Berakhir',
+                    text: 'Silakan login terlebih dahulu',
+                    timer: 2500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = 'login.html';
+                });
+                return;  // hentikan init lebih lanjut
+            }
+
+
             this.loadFromStorage();
             this.loadUserData();
 
@@ -1267,24 +1283,41 @@ document.addEventListener('alpine:init', () => {
         },
 
         // ──────────────────────────────────────────────
-        // Fungsi Logout & Reset
+        // Logout yang konsisten dengan login
         // ──────────────────────────────────────────────
         handleLogout() {
             Swal.fire({
-                title: 'Keluar dari sistem?',
+                title: 'Keluar dari Sistem?',
                 text: "Anda akan dialihkan ke halaman login",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#d33'
-            }).then(r => {
-                if (r.isConfirmed) {
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Keluar',
+                cancelButtonText: 'Batal'
+            }).then(result => {
+                if (result.isConfirmed) {
                     localStorage.removeItem('isLoggedIn');
-                    window.location.href = 'login.html';
+                    localStorage.removeItem('loggedInUser');
+                    localStorage.removeItem('isLoggedIn');
+                    location.reload();
+                    // optional: jangan hapus rememberedUser agar tetap ingat username
+                    Swal.fire({
+                        title: 'Berhasil Keluar',
+                        text: 'Sampai jumpa lagi!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.replace('login.html');
+                    });
                 }
             });
         },
-
+        // Optional: tampilkan nama user di navbar
+        get currentUser() {
+            return localStorage.getItem('loggedInUser') || 'Pengguna';
+        },
         // ──────────────────────────────────────────────
         // Fungsi Reset Semua Data (sudah ada, hanya ditata lebih rapi)
         // ──────────────────────────────────────────────
