@@ -969,6 +969,117 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        // Simpan Profil Saya
+        saveProfile() {
+            this.saving = true;
+
+            if (!this.userProfile.name?.trim() || !this.userProfile.email?.trim()) {
+                Swal.fire('Error', 'Nama dan Email wajib diisi', 'error');
+                this.saving = false;
+                return;
+            }
+
+            if (!this.userProfile.email.includes('@') || !this.userProfile.email.includes('.')) {
+                Swal.fire('Error', 'Format email tidak valid', 'error');
+                this.saving = false;
+                return;
+            }
+
+            Swal.fire({
+                title: 'Simpan Perubahan Profil?',
+                text: "Data profil Anda akan diperbarui.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Ya, Simpan'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    this.saving = false;
+                    return;
+                }
+
+                // Simpan data
+                this.saveUserData();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Profil Anda telah diperbarui.',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    this.profileModalOpen = false;  // TUTUP MODAL SETELAH SUKSES
+                });
+
+                this.saving = false;
+            });
+        },
+
+        // Simpan Pengaturan Akun
+        saveSettings() {
+            this.saving = true;
+
+            // Validasi password jika diisi
+            if (this.settings.oldPassword || this.settings.newPassword || this.settings.confirmPassword) {
+                if (!this.settings.oldPassword) {
+                    Swal.fire('Error', 'Kata sandi lama wajib diisi jika ingin mengganti', 'error');
+                    this.saving = false;
+                    return;
+                }
+                if (!this.settings.newPassword) {
+                    Swal.fire('Error', 'Kata sandi baru wajib diisi', 'error');
+                    this.saving = false;
+                    return;
+                }
+                if (this.settings.newPassword !== this.settings.confirmPassword) {
+                    Swal.fire('Error', 'Konfirmasi kata sandi tidak cocok', 'error');
+                    this.saving = false;
+                    return;
+                }
+                if (this.settings.newPassword.length < 6) {
+                    Swal.fire('Error', 'Kata sandi baru minimal 6 karakter', 'error');
+                    this.saving = false;
+                    return;
+                }
+            }
+
+            Swal.fire({
+                title: 'Simpan Pengaturan Akun?',
+                text: "Perubahan akan disimpan.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonText: 'Batal',
+                confirmButtonText: 'Ya, Simpan'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    this.saving = false;
+                    return;
+                }
+
+                // Simpan data
+                this.saveUserData();
+
+                // Reset form password
+                this.settings.oldPassword = '';
+                this.settings.newPassword = '';
+                this.settings.confirmPassword = '';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Pengaturan akun telah diperbarui.',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    this.profileModalOpen = false;  // TUTUP MODAL SETELAH SUKSES
+                });
+
+                this.saving = false;
+            });
+        },
+
         setPage(page) {
             this.pageLoading = true;
             this.currentPage = page;
