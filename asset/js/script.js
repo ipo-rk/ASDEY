@@ -18,6 +18,7 @@ document.addEventListener('alpine:init', () => {
         selectedDetailAsrama: null,
         assigning: false,              // loading state untuk tombol assign
         selectedPenghuni: null,
+        pageLoading: true,
 
         isExporting() {
             return this.exporting || false;
@@ -397,6 +398,21 @@ document.addEventListener('alpine:init', () => {
                 }
             });
             console.log('SIMASRA initialized');
+
+            this.$nextTick(() => {
+                // Delay kecil untuk memastikan semua transisi & watcher selesai
+                setTimeout(() => {
+                    const loader = document.getElementById('page-loader');
+                    if (loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => {
+                            loader.remove();
+                        }, 800); // waktu fade-out selesai
+                    }
+                }, 3000);
+            });
+
+
         },
 
         resetInitialData() {
@@ -516,9 +532,21 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        // ──────────────────────────────────────────────
-        // Assign & Kosongkan Kamar
-        // ──────────────────────────────────────────────
+        deletePenghuni(penghuni) {
+            Swal.fire({
+                title: 'Hapus Penghuni?',
+                text: `Yakin menghapus data penghuni ${penghuni.nama} (${penghuni.nik})?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Ya, Hapus'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.penghuni = this.penghuni.filter(p => p.nik !== penghuni.nik);
+                    Swal.fire('Terhapus!', 'Data penghuni telah dihapus.', 'success');
+                }
+            });
+        },
         // ──────────────────────────────────────────────
         // Assign Penghuni ke Barak (Versi Final - Aman & Konsisten)
         // ──────────────────────────────────────────────
@@ -942,10 +970,15 @@ document.addEventListener('alpine:init', () => {
         },
 
         setPage(page) {
+            this.pageLoading = true;
             this.currentPage = page;
             if (window.innerWidth < 1024) {
                 this.sidebarOpen = false;
             }
+            // Delay kecil untuk simulasi loading
+            setTimeout(() => {
+                this.pageLoading = false;
+            }, 600);
         },
 
 
@@ -1188,79 +1221,110 @@ document.addEventListener('alpine:init', () => {
         // Jika ada fungsi lain yang masih ingin ditambahkan (misal print laporan, export CSV, dll),
         // bisa dilanjutkan di sini
         // ──────────────────────────────────────────────
-        // Export Laporan (PDF & Excel) dengan loading state
+        // EXPORT DATA - PDF & EXCEL (VERSI FINAL AKURAT & KONSISTEN)
         // ──────────────────────────────────────────────
         exportPDF() {
             this.exporting = true;
             this.exportFormat = 'PDF';
 
             try {
-                if (typeof window.jspdf === 'undefined') {
-                    throw new Error('Library jsPDF gagal dimuat');
-                }
-
                 const { jsPDF } = window.jspdf;
+                if (!jsPDF) throw new Error('jsPDF tidak terload');
+
                 const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
 
-                doc.setFontSize(16);
-                doc.text("Laporan SIMASRA", 105, 15, { align: 'center' });
-                doc.setFontSize(12);
-                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 25);
+                // Header Laporan
+                doc.setFontSize(18);
+                doc.setTextColor(37, 99, 235);
+                doc.text("Laporan SIMASRA - Asrama Kabupaten Deiyai", pageWidth / 2, 20, { align: "center" });
 
-                let finalY = 35;
+                doc.setFontSize(11);
+                doc.setTextColor(100);
+                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, 30, { align: "center" });
 
-                if (this.currentPage === 'penghuni' || this.currentPage === 'dashboard') {
+                let yPos = 45;
+
+                // Ringkasan Statistik
+                doc.setFontSize(14);
+                doc.setTextColor(0);
+                doc.text("Ringkasan Statistik Saat Ini", 20, yPos);
+                yPos += 10;
+
+                doc.setFontSize(11);
+                const summary = [
+                    ["Penghuni Aktif", this.penghuniAktif || 0],
+                    ["Tingkat Hunian", `${this.hunianPersen || 0}%`],
+                    ["Alumni Tahun Ini", this.alumniTahunIni || 0],
+                    ["Kamar Kosong", this.kamarKosong || 0],
+                    ["Total Barak", this.totalBarak || 0],
+                    ["Total Kamar", this.totalKamarComputed || 0]
+                ];
+
+                doc.autoTable({
+                    startY: yPos,
+                    head: [['Kategori', 'Jumlah']],
+                    body: summary,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+                    styles: { fontSize: 10, cellPadding: 4 },
+                    margin: { left: 20, right: 20 },
+                    columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 40, halign: 'center' } }
+                });
+
+                yPos = doc.lastAutoTable.finalY + 20;
+
+                // Penghuni per Distrik
+                if (this.laporanDistrik?.length > 0) {
                     doc.setFontSize(14);
-                    doc.text("Daftar Penghuni", 14, finalY);
-                    finalY += 8;
+                    doc.text("Penghuni Aktif per Distrik", 20, yPos);
+                    yPos += 8;
 
-                    const tableData = this.filteredPenghuni.map(p => [
-                        p.nik,
-                        p.nama,
-                        p.nisn_nim || '-',
-                        p.distrik || '-',
-                        p.jenjang,
-                        p.tahun_masuk,
-                        p.status.toUpperCase(),
-                        this.getKamarSaatIni(p)
-                    ]);
-
+                    const distrikData = this.laporanDistrik.map(d => [d.distrik, d.jumlah]);
                     doc.autoTable({
-                        startY: finalY,
-                        head: [['NIK', 'Nama', 'NISN/NIM', 'Distrik', 'Jenjang', 'Tahun Masuk', 'Status', 'Kamar Saat Ini']],
-                        body: tableData,
-                        theme: 'grid',
-                        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontSize: 10 },
-                        styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak' },
-                        columnStyles: {
-                            0: { cellWidth: 30 },
-                            1: { cellWidth: 40 },
-                            2: { cellWidth: 25 },
-                            3: { cellWidth: 25 },
-                            4: { cellWidth: 20 },
-                            5: { cellWidth: 20 },
-                            6: { cellWidth: 18 },
-                            7: { cellWidth: 35 }
-                        },
-                        margin: { top: finalY, left: 14, right: 14 }
+                        startY: yPos,
+                        head: [['Distrik', 'Jumlah Orang']],
+                        body: distrikData,
+                        theme: 'striped',
+                        headStyles: { fillColor: [66, 139, 202] },
+                        styles: { fontSize: 10, cellPadding: 3 },
+                        margin: { left: 20, right: 20 }
                     });
+                    yPos = doc.lastAutoTable.finalY + 15;
+                }
 
-                    doc.save('laporan_penghuni.pdf');
+                // Penghuni per Jenjang
+                if (this.laporanJenjang?.length > 0) {
+                    doc.setFontSize(14);
+                    doc.text("Penghuni per Jenjang Pendidikan", 20, yPos);
+                    yPos += 8;
+
+                    const jenjangData = this.laporanJenjang.map(j => [j.jenjang, j.jumlah]);
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [['Jenjang', 'Jumlah Orang']],
+                        body: jenjangData,
+                        theme: 'striped',
+                        headStyles: { fillColor: [66, 139, 202] },
+                        styles: { fontSize: 10, cellPadding: 3 },
+                        margin: { left: 20, right: 20 }
+                    });
                 }
-                else if (this.currentPage === 'inventaris') {
-                    // ... (kode inventaris seperti sebelumnya) ...
-                    doc.save('laporan_inventaris.pdf');
+
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(9);
+                    doc.setTextColor(150);
+                    doc.text(`Halaman ${i} dari ${pageCount} • SIMASRA © ${new Date().getFullYear()}`, pageWidth / 2, pageHeight - 10, { align: "center" });
                 }
-                else if (this.currentPage === 'asrama') {
-                    // ... (kode asrama seperti sebelumnya) ...
-                    doc.save('laporan_asrama.pdf');
-                }
-                else {
-                    Swal.fire('Info', 'Fitur export PDF belum tersedia di halaman ini', 'info');
-                }
+
+                doc.save(`laporan_simasra_${new Date().toISOString().split('T')[0]}.pdf`);
             } catch (err) {
-                console.error('Export PDF gagal:', err);
-                Swal.fire('Error', 'Gagal membuat PDF. Coba lagi atau periksa console.', 'error');
+                console.error('Gagal export PDF:', err);
+                Swal.fire('Error', 'Gagal membuat file PDF. Cek console atau koneksi CDN.', 'error');
             } finally {
                 this.exporting = false;
                 this.exportFormat = '';
@@ -1272,76 +1336,71 @@ document.addEventListener('alpine:init', () => {
             this.exportFormat = 'Excel';
 
             try {
-                if (typeof XLSX === 'undefined') {
-                    throw new Error('Library SheetJS gagal dimuat');
-                }
-
-                let data = [];
-                let filename = '';
-                let sheetName = '';
-
-                if (this.currentPage === 'penghuni' || this.currentPage === 'dashboard') {
-                    data = this.filteredPenghuni.map(p => ({
-                        NIK: p.nik,
-                        Nama: p.nama,
-                        'NISN/NIM': p.nisn_nim || '-',
-                        Distrik: p.distrik || '-',
-                        Jenjang: p.jenjang,
-                        'Tahun Masuk': p.tahun_masuk,
-                        Status: p.status,
-                        'Kamar Saat Ini': this.getKamarSaatIni(p)
-                    }));
-                    filename = 'laporan_penghuni.xlsx';
-                    sheetName = 'Penghuni';
-                }
-                else if (this.currentPage === 'inventaris') {
-                    // ... (kode inventaris seperti sebelumnya) ...
-                    filename = 'laporan_inventaris.xlsx';
-                    sheetName = 'Inventaris';
-                }
-                else if (this.currentPage === 'asrama') {
-                    // ... (kode asrama seperti sebelumnya) ...
-                    filename = 'laporan_asrama.xlsx';
-                    sheetName = 'Asrama';
-                }
-                else {
-                    Swal.fire('Info', 'Export Excel belum tersedia di halaman ini', 'info');
-                    return;
-                }
-
-                if (data.length === 0) {
-                    Swal.fire('Peringatan', 'Tidak ada data untuk diekspor', 'warning');
-                    return;
-                }
-
-                const ws = XLSX.utils.json_to_sheet(data);
-
-                // Auto lebar kolom
-                const colWidths = [];
-                const headers = Object.keys(data[0]);
-                headers.forEach((header, i) => {
-                    let maxLen = header.length;
-                    data.forEach(row => {
-                        const val = (row[header] || '').toString();
-                        if (val.length > maxLen) maxLen = val.length;
-                    });
-                    colWidths[i] = { wch: maxLen + 3 };
-                });
-                ws['!cols'] = colWidths;
+                if (typeof XLSX === 'undefined') throw new Error('SheetJS tidak terload');
 
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+                // Sheet 1: Ringkasan Statistik
+                const summaryData = [
+                    ["Kategori", "Jumlah"],
+                    ["Penghuni Aktif Saat Ini", this.penghuniAktif || 0],
+                    ["Tingkat Hunian", `${this.hunianPersen || 0}%`],
+                    ["Alumni Tahun Ini", this.alumniTahunIni || 0],
+                    ["Kamar Kosong", this.kamarKosong || 0],
+                    ["Total Barak", this.totalBarak || 0],
+                    ["Total Kamar", this.totalKamarComputed || 0]
+                ];
+                const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
+
+                // Sheet 2: Penghuni per Distrik
+                if (this.laporanDistrik?.length > 0) {
+                    const distrikData = [["Distrik", "Jumlah Orang"], ...this.laporanDistrik.map(d => [d.distrik, d.jumlah])];
+                    const wsDistrik = XLSX.utils.aoa_to_sheet(distrikData);
+                    XLSX.utils.book_append_sheet(wb, wsDistrik, "Distrik");
+                }
+
+                // Sheet 3: Penghuni per Jenjang
+                if (this.laporanJenjang?.length > 0) {
+                    const jenjangData = [["Jenjang", "Jumlah Orang"], ...this.laporanJenjang.map(j => [j.jenjang, j.jumlah])];
+                    const wsJenjang = XLSX.utils.aoa_to_sheet(jenjangData);
+                    XLSX.utils.book_append_sheet(wb, wsJenjang, "Jenjang");
+                }
+
+                // Auto lebar kolom
+                [wsSummary, wb.Sheets["Distrik"], wb.Sheets["Jenjang"]].forEach(ws => {
+                    if (ws) {
+                        const range = XLSX.utils.decode_range(ws['!ref']);
+                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                            let maxWidth = 10;
+                            for (let R = range.s.r; R <= range.e.r; ++R) {
+                                const cell = ws[XLSX.utils.encode_cell({ c: C, r: R })];
+                                if (cell && cell.v) {
+                                    const len = cell.v.toString().length;
+                                    if (len > maxWidth) maxWidth = len;
+                                }
+                            }
+                            ws['!cols'] = ws['!cols'] || [];
+                            ws['!cols'][C] = { wch: maxWidth + 2 };
+                        }
+                    }
+                });
+
+                const filename = `laporan_simasra_${new Date().toISOString().split('T')[0]}.xlsx`;
                 XLSX.writeFile(wb, filename);
 
-                Swal.fire('Sukses', `File ${filename} telah diunduh`, 'success');
+                Swal.fire('Sukses', `File Excel "${filename}" telah diunduh`, 'success');
             } catch (err) {
-                console.error('Export Excel gagal:', err);
-                Swal.fire('Error', 'Gagal membuat file Excel. Coba lagi atau periksa koneksi/CDN.', 'error');
+                console.error('Gagal export Excel:', err);
+                Swal.fire('Error', 'Gagal membuat file Excel. Cek koneksi CDN SheetJS.', 'error');
             } finally {
                 this.exporting = false;
                 this.exportFormat = '';
             }
         },
+
+        isExporting() { return this.exporting || false; },
+        getExportFormat() { return this.exportFormat || ''; },
 
         backupAllData() {
             const backup = {

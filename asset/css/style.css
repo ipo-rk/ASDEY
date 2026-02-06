@@ -430,57 +430,6 @@ tbody tr:hover {
   }
 }
 
-/* ==========================================================================
-   LOADER FULL-SCREEN – Glassmorphic & Elegant
-   ========================================================================== */
-.loader-container {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.5s ease;
-}
-
-.loader-spinner {
-  width: 80px;
-  height: 80px;
-  position: relative;
-}
-
-.loader-spinner::before,
-.loader-spinner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 5px solid transparent;
-  box-sizing: border-box;
-}
-
-.loader-spinner::before {
-  border-top-color: var(--primary, #2563eb);
-  border-right-color: var(--primary, #2563eb);
-  animation: spin 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
-  box-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
-}
-
-.loader-spinner::after {
-  inset: 12px;
-  border-top-color: var(--accent, #7c3aed);
-  border-left-color: var(--accent, #7c3aed);
-  animation: spin-reverse 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
-  opacity: 0.7;
-}
-
-.loader-text {
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -492,6 +441,25 @@ tbody tr:hover {
     transform: rotate(-360deg);
   }
 }
+
+/* Animasi spin
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+} */
 
 /* ==========================================================================
    END – Ready for production
