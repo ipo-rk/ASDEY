@@ -11,7 +11,14 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { primary: '#3b82f6', primarydark: '#1d4ed8' } } }
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        primarydark: '#1d4ed8'
+                    }
+                }
+            }
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,9 +28,9 @@
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen" x-data="app"
-    @click="closeDropdowns($event)">
+    @click="closeDropdowns($event)" x-cloak>
 
-    <!-- ══════ LOADER ══════ -->
+    <!-- LOADER -->
     <div id="page-loader">
         <div class="text-center">
             <div class="loader-ring mx-auto"></div>
@@ -39,7 +46,7 @@
 
     <div class="flex h-screen overflow-hidden">
 
-        <!-- ══════ SIDEBAR ══════ -->
+        <!-- SIDEBAR -->
         <aside x-show="sidebarOpen" x-transition:enter="transition ease-out duration-250"
             x-transition:enter-start="-translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0 opacity-100"
@@ -135,7 +142,7 @@
             </div>
         </aside>
 
-        <!-- ══════ MAIN ══════ -->
+        <!-- MAIN CONTENT -->
         <div class="flex-1 flex flex-col overflow-hidden">
 
             <!-- TOPBAR -->
@@ -151,13 +158,8 @@
                     </button>
                     <div>
                         <h2 class="font-bold text-base leading-tight" style="font-family:'Plus Jakarta Sans',sans-serif"
-                            x-text="
-                    currentPage==='dashboard'?'Dashboard':
-                    currentPage==='penghuni'?'Data Penghuni':
-                    currentPage==='kamar'?'Manajemen Kamar':
-                    currentPage==='inventaris'?'Manajemen Inventaris':
-                    currentPage==='laporan'?'Laporan & Statistik':'SIMASRA'
-                "></h2>
+                            x-text="currentPage==='dashboard'?'Dashboard':currentPage==='penghuni'?'Data Penghuni':currentPage==='kamar'?'Manajemen Kamar':currentPage==='inventaris'?'Manajemen Inventaris':currentPage==='laporan'?'Laporan & Statistik':'SIMASRA'">
+                        </h2>
                         <p class="text-xs text-slate-400"
                             x-text="new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})">
                         </p>
@@ -186,7 +188,7 @@
                         </div>
                     </div>
 
-                    <!-- Dark mode -->
+                    <!-- Dark Mode -->
                     <button @click="toggleDarkMode()"
                         class="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                         <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,7 +231,7 @@
             <!-- PAGE CONTENT -->
             <main class="flex-1 overflow-y-auto p-5 space-y-6">
 
-                <!-- ═══ DASHBOARD ═══ -->
+                <!-- DASHBOARD -->
                 <section x-show="currentPage==='dashboard'" x-cloak class="space-y-6 fade-in">
                     <!-- Hero Banner -->
                     <div
@@ -242,7 +244,7 @@
                             <h1 class="text-2xl font-800 mb-1" style="font-family:'Plus Jakarta Sans',sans-serif"
                                 x-text="userProfile.name||'Richy Rizaldo'"></h1>
                             <p class="text-blue-100 text-sm">Sistem Informasi Manajemen Asrama Kabupaten Deiyai · Kota
-                                Study Jayapura</p>
+                                Studi Jayapura</p>
                         </div>
                         <div class="absolute bottom-0 right-6 text-right hidden sm:block">
                             <p class="text-blue-100 text-xs"
@@ -1594,38 +1596,42 @@
         </div>
     </div>
 
-    <!-- ⑧ Modal Profil & Pengaturan -->
+    <!-- ⑧ Modal Profil & Pengaturan - VERSI FINAL (No Warning) -->
     <div x-show="profileModalOpen" class="modal-backdrop" @click.self="profileModalOpen=false">
         <div class="modal-box max-w-xl">
             <div class="modal-header">
                 <h3 class="font-800 text-lg" style="font-family:'Plus Jakarta Sans',sans-serif">Pengaturan Akun</h3>
                 <button @click="profileModalOpen=false"
-                    class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"><svg class="w-5 h-5"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
-                    </svg></button>
+                    </svg>
+                </button>
             </div>
+
             <div class="flex border-b border-slate-100 dark:border-slate-800">
                 <button @click="activeTab='profile'"
-                    :class="activeTab==='profile'?'border-b-2 border-blue-500 text-blue-600 font-600':'text-slate-500 hover:text-slate-700'"
+                    :class="activeTab==='profile' ? 'border-b-2 border-blue-500 text-blue-600 font-600' : 'text-slate-500 hover:text-slate-700'"
                     class="flex-1 py-3 text-sm transition">Profil Saya</button>
                 <button @click="activeTab='settings'"
-                    :class="activeTab==='settings'?'border-b-2 border-blue-500 text-blue-600 font-600':'text-slate-500 hover:text-slate-700'"
+                    :class="activeTab==='settings' ? 'border-b-2 border-blue-500 text-blue-600 font-600' : 'text-slate-500 hover:text-slate-700'"
                     class="flex-1 py-3 text-sm transition">Pengaturan</button>
             </div>
+
             <div class="p-6">
-                <!-- Tab Profil -->
+
+                <!-- === TAB PROFIL === -->
                 <div x-show="activeTab==='profile'">
                     <form @submit.prevent="saveProfile" class="space-y-4">
-                        <div class="flex flex-col items-center mb-4">
+                        <div class="flex flex-col items-center mb-6">
                             <div class="relative group w-20 h-20">
                                 <div
                                     class="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
                                     <img x-show="userProfile.photo" :src="userProfile.photo"
                                         class="w-full h-full object-cover">
                                     <span x-show="!userProfile.photo"
-                                        x-text="userProfile.name?userProfile.name.charAt(0).toUpperCase():'R'"></span>
+                                        x-text="userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'R'"></span>
                                 </div>
                                 <label for="photo-upload"
                                     class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition shadow-lg">
@@ -1641,64 +1647,89 @@
                                     @change="uploadPhoto">
                             </div>
                         </div>
-                        <div><label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Nama
-                                Lengkap *</label><input type="text" x-model="userProfile.name" required
-                                class="form-input" autocomplete="name"></div>
-                        <div><label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Email
-                                *</label><input type="email" x-model="userProfile.email" required class="form-input"
-                                autocomplete="email"></div>
-                        <div><label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">No. HP
-                                / WA</label><input type="tel" x-model="userProfile.phone" class="form-input"
-                                autocomplete="tel"></div>
-                        <div class="flex justify-end">
+
+                        <div>
+                            <label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Nama
+                                Lengkap *</label>
+                            <input type="text" x-model="userProfile.name" required class="form-input"
+                                autocomplete="name">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Email
+                                *</label>
+                            <input type="email" x-model="userProfile.email" required class="form-input"
+                                autocomplete="email">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">No. HP
+                                / WA</label>
+                            <input type="tel" x-model="userProfile.phone" class="form-input" autocomplete="tel">
+                        </div>
+
+                        <div class="flex justify-end pt-2">
                             <button type="submit" :disabled="saving" class="btn btn-primary disabled:opacity-50">
                                 <span x-show="!saving">Simpan Profil</span>
-                                <span x-show="saving" class="flex items-center gap-2"><svg class="animate-spin w-4 h-4"
-                                        fill="none" viewBox="0 0 24 24">
+                                <span x-show="saving" class="flex items-center gap-2">
+                                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                             stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor"
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>Menyimpan...</span>
+                                    </svg>
+                                    Menyimpan...
+                                </span>
                             </button>
                         </div>
                     </form>
                 </div>
-                <!-- Tab Settings -->
+
+                <!-- === TAB SETTINGS (SUDAH DIPERBAIKI - NO WARNING) === -->
                 <div x-show="activeTab==='settings'">
                     <form @submit.prevent="saveSettings" class="space-y-4">
                         <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 space-y-4">
                             <p class="font-600 text-sm">Ganti Kata Sandi</p>
-                            <!-- FIX: Tambah autocomplete yang benar pada semua input password -->
-                            <div><label
+
+                            <!-- Hidden field ini penting untuk menghilangkan warning Chrome -->
+                            <input type="hidden" name="username"
+                                :value="userProfile.email || userProfile.name || 'pengurus'">
+
+                            <div>
+                                <label
                                     class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Kata
                                     Sandi Lama</label>
                                 <input type="password" x-model="settings.oldPassword" class="form-input"
                                     autocomplete="current-password">
                             </div>
-                            <div><label
+                            <div>
+                                <label
                                     class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Kata
                                     Sandi Baru</label>
                                 <input type="password" x-model="settings.newPassword" minlength="6" class="form-input"
                                     autocomplete="new-password">
                             </div>
-                            <div><label
+                            <div>
+                                <label
                                     class="block text-xs font-600 text-slate-500 uppercase tracking-wider mb-1.5">Konfirmasi
                                     Sandi Baru</label>
                                 <input type="password" x-model="settings.confirmPassword" class="form-input"
                                     autocomplete="new-password">
                             </div>
                         </div>
+
+                        <!-- Dark Mode -->
                         <div
                             class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800">
                             <span class="text-sm">Mode Gelap</span>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" x-model="darkMode" class="sr-only peer">
                                 <div
-                                    class="w-11 h-6 bg-slate-200 peer-checked:bg-blue-500 rounded-full relative transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5">
+                                    class="w-11 h-6 bg-slate-200 peer-checked:bg-blue-500 rounded-full relative transition-colors 
+                                        after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white 
+                                        after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5">
                                 </div>
                             </label>
                         </div>
+
                         <div class="flex justify-end">
                             <button type="submit" :disabled="saving" class="btn btn-primary disabled:opacity-50">
                                 <span x-show="!saving">Simpan Pengaturan</span>
@@ -1707,6 +1738,7 @@
                         </div>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
@@ -1720,7 +1752,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="asset/js/script.js"></script>
-
 </body>
 
 </html>
