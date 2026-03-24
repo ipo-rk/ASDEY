@@ -1,8 +1,9 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('app', () => ({
-        // ──────────────────────────────────────────────
-        // State Dasar & UI
-        // ──────────────────────────────────────────────
+
+        // ══════════════════════════════════════════════
+        // STATE DASAR & UI
+        // ══════════════════════════════════════════════
         sidebarOpen: window.innerWidth >= 1024,
         darkMode: localStorage.theme === 'dark' ||
             (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
@@ -12,26 +13,20 @@ document.addEventListener('alpine:init', () => {
         profileModalOpen: false,
         activeTab: 'profile',
         saving: false,
-        exporting: false,          // ← PASTIKAN INI ADA
+        exporting: false,
         exportFormat: '',
-        detailAsramaOpen: false,
-        selectedDetailAsrama: null,
-        assigning: false,              // loading state untuk tombol assign
-        selectedPenghuni: null,
-        pageLoading: true,
+        assigning: false,
 
-        isExporting() {
-            return this.exporting || false;
-        },
-        getExportFormat() {
-            return this.exportFormat || '';
-        },
-        // ──────────────────────────────────────────────
-        // Data Utama
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // KONSTANTA – ubah angka ini untuk ganti batas maksimal penghuni per kamar
+        // ══════════════════════════════════════════════
+        MAX_PENGHUNI_PER_KAMAR: 3,
+
+        // ══════════════════════════════════════════════
+        // DATA UTAMA
+        // ══════════════════════════════════════════════
         penghuni: [],
         barak: [],
-        asramaList: [],
         inventaris: [],
 
         userProfile: {
@@ -48,9 +43,9 @@ document.addEventListener('alpine:init', () => {
             emailNotifications: true
         },
 
-        // ──────────────────────────────────────────────
-        // Modals & Filters
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // MODALS – PENGHUNI
+        // ══════════════════════════════════════════════
         modalOpen: false,
         isEditMode: false,
         form: {},
@@ -59,9 +54,14 @@ document.addEventListener('alpine:init', () => {
         selectedPenghuni: null,
         selectedRiwayat: [],
 
+        // ══════════════════════════════════════════════
+        // MODALS – KAMAR / BARAK
+        // ══════════════════════════════════════════════
         assignModalOpen: false,
         selectedKamar: null,
         selectedPenghuniId: '',
+        assignSelectedBarakId: '',
+        assignSelectedKamarNomor: '',
 
         detailKamarOpen: false,
         selectedDetailBarak: null,
@@ -70,16 +70,21 @@ document.addEventListener('alpine:init', () => {
         selectedKamarRiwayat: null,
         selectedRiwayatKamar: [],
 
-        asramaModalOpen: false,
-        isEditAsrama: false,
-        asramaForm: {},
+        barakModalOpen: false,
+        isEditBarak: false,
+        barakForm: { lantai: '', sisi: '', kapasitas: '' },
 
+        // ══════════════════════════════════════════════
+        // MODALS – INVENTARIS
+        // ══════════════════════════════════════════════
         inventarisModalOpen: false,
         isEditInventaris: false,
         inventarisForm: {},
         daftarKamarPilihan: [],
 
-        // Filters & Pagination
+        // ══════════════════════════════════════════════
+        // FILTERS & PAGINATION
+        // ══════════════════════════════════════════════
         searchQuery: '',
         filterJenjang: '',
         filterTahun: '',
@@ -91,173 +96,272 @@ document.addEventListener('alpine:init', () => {
         currentPageKamar: 1,
         itemsPerPageKamar: 6,
 
-        filterJenisAsrama: '',
-        filterStatusAsrama: '',
-
         filterBarakInventaris: '',
         filterJenisInventaris: '',
 
         filterPeriode: 'bulan',
-        filterTahunLaporan: new Date().getFullYear().toString(),
+        filterTahunLaporan: String(new Date().getFullYear()),
 
-        // ──────────────────────────────────────────────
-        // Getter Wajib & Pendukung
-        // ──────────────────────────────────────────────
-        get totalKamarComputed() {
-            return this.barak.reduce((sum, b) => sum + (b.daftarKamar?.length || 0), 0);
-        },
-
-        get selectedPenghuniDetail() {
-            if (!this.selectedPenghuniId) return null;
-            return this.penghuni.find(p => p.nik === this.selectedPenghuniId) || null;
-        },
-
-        get availableYears() {
-            const years = [...new Set(this.penghuni.map(p => Number(p.tahun_masuk)).filter(y => !isNaN(y)))];
-            return years.length ? years.sort((a, b) => b - a) : [new Date().getFullYear()];
-        },
-
-        get availableYearsLaporan() {
-            const current = new Date().getFullYear();
-            return Array.from({ length: 10 }, (_, i) => current - i);
-        },
-
-        get penghuniAktifList() {
-            return this.penghuni
-                .filter(p => p.status === 'aktif')
-                .sort((a, b) => a.nama.localeCompare(b.nama));
-        },
-
-        // ← Getter baru yang paling cocok untuk dropdown assign
-        get penghuniBisaDiassign() {
-            return this.penghuni
-                .filter(p => p.status === 'aktif' && !p.kamarSaatIni)
-                .sort((a, b) => a.nama.localeCompare(b.nama));
-        },
-
-        // ──────────────────────────────────────────────
-        // Getter untuk Asrama (sudah lengkap & aman)
-        // ──────────────────────────────────────────────
-        get filteredAsrama() {
-            return this.asramaList.map(a => ({
-                ...a,
-                hunian: a.kapasitas > 0 ? Math.round((a.penghuniSaatIni / a.kapasitas) * 100) : 0
-            })).filter(a => {
-                let match = true;
-                if (this.filterJenisAsrama) match = match && a.jenis === this.filterJenisAsrama;
-                if (this.filterStatusAsrama) match = match && a.status === this.filterStatusAsrama;
-                return match;
-            });
-        },
-
-        get totalKapasitas() {
-            return this.asramaList.reduce((sum, a) => sum + (Number(a.kapasitas) || 0), 0);
-        },
-
-        get totalPenghuni() {
-            return this.asramaList.reduce((sum, a) => sum + (Number(a.penghuniSaatIni) || 0), 0);
-        },
-
-        get hunianPersen() {
-            return this.totalKapasitas > 0 ? Math.round((this.totalPenghuni / this.totalKapasitas) * 100) : 0;
-        },
-
-        // ──────────────────────────────────────────────
-        // Getter untuk Laporan & Statistik
-        // ──────────────────────────────────────────────
-        get alumniTahunIni() {
-            const th = new Date().getFullYear();
-            return this.penghuni.filter(p =>
-                p.status === 'alumni' &&
-                Number(p.tahun_masuk) + 3 <= th
-            ).length;
-        },
-
-        get laporanDistrik() {
-            const grouped = {};
-            this.penghuni.forEach(p => {
-                if (p.status === 'aktif') {
-                    const d = p.distrik || 'Lainnya';
-                    grouped[d] = (grouped[d] || 0) + 1;
-                }
-            });
-            return Object.entries(grouped)
-                .map(([distrik, jumlah]) => ({ distrik, jumlah }))
-                .sort((a, b) => b.jumlah - a.jumlah);
-        },
-
-        get laporanJenjang() {
-            const grouped = {};
-            this.penghuni.forEach(p => {
-                if (p.status === 'aktif') {
-                    const j = p.jenjang || 'Lainnya';
-                    grouped[j] = (grouped[j] || 0) + 1;
-                }
-            });
-            return Object.entries(grouped)
-                .map(([jenjang, jumlah]) => ({ jenjang, jumlah }))
-                .sort((a, b) => b.jumlah - a.jumlah);
-        },
-
-        // ──────────────────────────────────────────────
-        // Getter untuk Inventaris (lengkap & aman)
-        // ──────────────────────────────────────────────
-        get filteredInventaris() {
-            let res = this.inventaris;
-            if (this.filterBarakInventaris) res = res.filter(i => i.barakId == this.filterBarakInventaris);
-            if (this.filterJenisInventaris) res = res.filter(i => i.jenis === this.filterJenisInventaris);
-            return res;
-        },
-
-        get totalBaik() {
-            return this.inventaris.reduce((s, i) => s + (Number(i.baik) || 0), 0);
-        },
-
-        get totalRusakRingan() {
-            return this.inventaris.reduce((s, i) => s + (Number(i.rusakRingan) || 0), 0);
-        },
-
-        get totalRusakBerat() {
-            return this.inventaris.reduce((s, i) => s + (Number(i.rusakBerat) || 0), 0);
-        },
-
-        get totalInventaris() {
-            return this.totalBaik + this.totalRusakRingan + this.totalRusakBerat;
-        },
-
-        get persenBaik() {
-            return this.totalInventaris ? Math.round((this.totalBaik / this.totalInventaris) * 100) : 0;
-        },
-
-        get persenRusakRingan() {
-            return this.totalInventaris ? Math.round((this.totalRusakRingan / this.totalInventaris) * 100) : 0;
-        },
-
-        get persenRusakBerat() {
-            return this.totalInventaris ? Math.round((this.totalRusakBerat / this.totalInventaris) * 100) : 0;
-        },
-
-        // ──────────────────────────────────────────────
-        // Storage
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // STORAGE KEYS
+        // ══════════════════════════════════════════════
         STORAGE_KEYS: {
             PENGHUNI: 'simasra_penghuni',
             BARAK: 'simasra_barak',
-            ASRAMA: 'simasra_asrama',
             INVENTARIS: 'simasra_inventaris',
             USER_PROFILE: 'simasra_user_profile',
             USER_SETTINGS: 'simasra_user_settings'
         },
 
+        // ══════════════════════════════════════════════
+        // HELPER KAMAR – multi-penghuni per kamar
+        // Struktur kamar baru: penghuniList (array NIK, maks MAX_PENGHUNI_PER_KAMAR)
+        // Status kamar: 'kosong' | 'terisi_sebagian' | 'penuh'
+        // ══════════════════════════════════════════════
+
+        _jumlahPenghuniKamar(kamar) {
+            return (kamar.penghuniList || []).length;
+        },
+
+        _kamarBisaDisisi(kamar) {
+            return this._jumlahPenghuniKamar(kamar) < this.MAX_PENGHUNI_PER_KAMAR;
+        },
+
+        _updateStatusKamar(kamar) {
+            const jml = this._jumlahPenghuniKamar(kamar);
+            if (jml === 0) kamar.status = 'kosong';
+            else if (jml >= this.MAX_PENGHUNI_PER_KAMAR) kamar.status = 'penuh';
+            else kamar.status = 'terisi_sebagian';
+            return kamar;
+        },
+
+        _updateStatusBarak(barak) {
+            const kamarList = barak.daftarKamar || [];
+            barak.terisi = kamarList.reduce((s, k) => s + this._jumlahPenghuniKamar(k), 0);
+            const adaIsi = kamarList.some(k => k.status !== 'kosong');
+            const semuaPenuh = kamarList.length > 0 && kamarList.every(k => k.status === 'penuh');
+            if (!adaIsi) barak.status = 'kosong';
+            else if (semuaPenuh) barak.status = 'penuh';
+            else barak.status = 'terisi_sebagian';
+            return barak;
+        },
+
+        _namaPenghuniKamar(kamar) {
+            return (kamar.penghuniList || []).map(nik => {
+                const p = this.penghuni.find(x => x.nik === nik);
+                return { nik, nama: p?.nama || '(data hilang)' };
+            });
+        },
+
+        // ══════════════════════════════════════════════
+        // GETTERS – BARAK & KAMAR
+        // ══════════════════════════════════════════════
+        get totalKamarComputed() {
+            return this.barak.reduce((s, b) => s + (b.daftarKamar?.length || 0), 0);
+        },
+        get totalBarak() { return this.barak.length; },
+        get barakTerisi() {
+            return this.barak.filter(b => b.status !== 'kosong' && b.status !== 'maintenance').length;
+        },
+        get barakKosong() {
+            return this.barak.filter(b => b.status === 'kosong').length;
+        },
+        get kamarKosong() {
+            return this.barak.reduce((s, b) =>
+                s + (b.daftarKamar || []).filter(k => k.status === 'kosong').length, 0);
+        },
+        get slotTersedia() {
+            return this.barak.reduce((s, b) =>
+                s + (b.daftarKamar || []).reduce((ss, k) =>
+                    ss + Math.max(0, this.MAX_PENGHUNI_PER_KAMAR - this._jumlahPenghuniKamar(k)), 0), 0);
+        },
+        get filteredBarak() {
+            let r = [...this.barak];
+            if (this.filterStatusKamar) r = r.filter(b => b.status === this.filterStatusKamar);
+            const s = (this.currentPageKamar - 1) * this.itemsPerPageKamar;
+            return r.slice(s, s + this.itemsPerPageKamar);
+        },
+        get filteredBarakAll() {
+            if (!this.filterStatusKamar) return this.barak;
+            return this.barak.filter(b => b.status === this.filterStatusKamar);
+        },
+        get barakBisaDiassign() {
+            return this.barak.filter(b =>
+                b.status !== 'maintenance' && b.status !== 'penuh' &&
+                (b.daftarKamar || []).some(k => this._kamarBisaDisisi(k))
+            );
+        },
+        get assignBarakDetail() {
+            if (!this.assignSelectedBarakId) return null;
+            return this.barak.find(b => String(b.id) === String(this.assignSelectedBarakId)) || null;
+        },
+
+        // ══════════════════════════════════════════════
+        // GETTERS – PENGHUNI
+        // ══════════════════════════════════════════════
+        get penghuniAktif() {
+            return this.penghuni.filter(p => p.status === 'aktif').length;
+        },
+        get penghuniBisaDiassign() {
+            return this.penghuni
+                .filter(p => p.status === 'aktif' && !p.kamarSaatIni)
+                .sort((a, b) => a.nama.localeCompare(b.nama));
+        },
+        get selectedPenghuniDetail() {
+            if (!this.selectedPenghuniId) return null;
+            return this.penghuni.find(p => p.nik === this.selectedPenghuniId) || null;
+        },
+        get availableYears() {
+            const ys = [...new Set(this.penghuni.map(p => Number(p.tahun_masuk)).filter(y => !isNaN(y)))];
+            return ys.length ? ys.sort((a, b) => b - a) : [new Date().getFullYear()];
+        },
+        get filteredPenghuni() {
+            const all = this.filteredPenghuniAll;
+            const s = (this.currentPageTable - 1) * this.itemsPerPage;
+            return all.slice(s, s + this.itemsPerPage);
+        },
+        get filteredPenghuniAll() {
+            let r = [...this.penghuni];
+            const q = (this.searchQuery || '').toLowerCase().trim();
+            if (q) r = r.filter(p =>
+                (p.nik || '').toLowerCase().includes(q) ||
+                (p.nama || '').toLowerCase().includes(q) ||
+                (p.nisn_nim || '').toLowerCase().includes(q) ||
+                (p.distrik || '').toLowerCase().includes(q)
+            );
+            if (this.filterJenjang) r = r.filter(p => p.jenjang === this.filterJenjang);
+            if (this.filterTahun) r = r.filter(p => Number(p.tahun_masuk) === Number(this.filterTahun));
+            if (this.filterStatus) r = r.filter(p => p.status === this.filterStatus);
+            return r;
+        },
+
+        // ══════════════════════════════════════════════
+        // GETTERS – LAPORAN
+        // ══════════════════════════════════════════════
+        get hunianPersen() {
+            const totalSlot = this.barak.reduce((s, b) =>
+                s + (b.daftarKamar || []).length * this.MAX_PENGHUNI_PER_KAMAR, 0);
+            const terisi = this.penghuni.filter(p => p.status === 'aktif' && p.kamarSaatIni).length;
+            return totalSlot > 0 ? Math.round((terisi / totalSlot) * 100) : 0;
+        },
+        get alumniTahunIni() {
+            const th = new Date().getFullYear();
+            return this.penghuni.filter(p => {
+                if (p.status !== 'alumni') return false;
+                if (p.tanggalKeluar) return new Date(p.tanggalKeluar).getFullYear() === th;
+                return Number(p.tahun_masuk) + 3 === th;
+            }).length;
+        },
+        get laporanDistrik() {
+            const g = {};
+            this.penghuni.forEach(p => {
+                if (p.status === 'aktif') { const d = p.distrik || 'Lainnya'; g[d] = (g[d] || 0) + 1; }
+            });
+            return Object.entries(g).map(([distrik, jumlah]) => ({ distrik, jumlah })).sort((a, b) => b.jumlah - a.jumlah);
+        },
+        get laporanJenjang() {
+            const g = {};
+            this.penghuni.forEach(p => {
+                if (p.status === 'aktif') { const j = p.jenjang || 'Lainnya'; g[j] = (g[j] || 0) + 1; }
+            });
+            return Object.entries(g).map(([jenjang, jumlah]) => ({ jenjang, jumlah })).sort((a, b) => b.jumlah - a.jumlah);
+        },
+        get laporanStatus() {
+            return [
+                { label: 'Aktif', jumlah: this.penghuni.filter(p => p.status === 'aktif').length, warna: '#22c55e' },
+                { label: 'Keluar', jumlah: this.penghuni.filter(p => p.status === 'keluar').length, warna: '#f97316' },
+                { label: 'Alumni', jumlah: this.penghuni.filter(p => p.status === 'alumni').length, warna: '#8b5cf6' }
+            ];
+        },
+        get laporanHunianBarak() {
+            const terisi = this.penghuni.filter(p => p.status === 'aktif' && p.kamarSaatIni).length;
+            const totalSlot = this.barak.reduce((s, b) =>
+                s + (b.daftarKamar || []).length * this.MAX_PENGHUNI_PER_KAMAR, 0);
+            return [
+                { label: 'Terisi', jumlah: terisi, warna: '#3b82f6' },
+                { label: 'Kosong', jumlah: Math.max(0, totalSlot - terisi), warna: '#e2e8f0' }
+            ];
+        },
+        get availableYearsLaporan() {
+            const cur = new Date().getFullYear();
+            return Array.from({ length: 10 }, (_, i) => String(cur - i));
+        },
+
+        // ══════════════════════════════════════════════
+        // GETTERS – INVENTARIS
+        // ══════════════════════════════════════════════
+        get filteredInventaris() {
+            let r = [...this.inventaris];
+            if (this.filterBarakInventaris) r = r.filter(i => String(i.barakId) === String(this.filterBarakInventaris));
+            if (this.filterJenisInventaris) r = r.filter(i => i.jenis === this.filterJenisInventaris);
+            return r;
+        },
+        get totalBaik() { return this.inventaris.reduce((s, i) => s + (Number(i.baik) || 0), 0); },
+        get totalRusakRingan() { return this.inventaris.reduce((s, i) => s + (Number(i.rusakRingan) || 0), 0); },
+        get totalRusakBerat() { return this.inventaris.reduce((s, i) => s + (Number(i.rusakBerat) || 0), 0); },
+        get totalInventaris() { return this.totalBaik + this.totalRusakRingan + this.totalRusakBerat; },
+        get persenBaik() { return this.totalInventaris ? Math.round((this.totalBaik / this.totalInventaris) * 100) : 0; },
+        get persenRusakRingan() { return this.totalInventaris ? Math.round((this.totalRusakRingan / this.totalInventaris) * 100) : 0; },
+        get persenRusakBerat() { return this.totalInventaris ? Math.round((this.totalRusakBerat / this.totalInventaris) * 100) : 0; },
+
+        // ══════════════════════════════════════════════
+        // STORAGE
+        // ══════════════════════════════════════════════
+        loadFromStorage() {
+            const loadArr = key => {
+                try {
+                    const s = localStorage.getItem(key);
+                    if (!s) return null;
+                    const p = JSON.parse(s);
+                    return Array.isArray(p) ? p : null;
+                } catch { return null; }
+            };
+            this.penghuni = loadArr(this.STORAGE_KEYS.PENGHUNI) || [];
+            this.barak = loadArr(this.STORAGE_KEYS.BARAK) || [];
+            this.inventaris = loadArr(this.STORAGE_KEYS.INVENTARIS) || [];
+
+            // Sanitasi & migrasi data lama ke format multi-penghuni
+            this.barak = this.barak.map((b, idx) => {
+                if (b.id == null) b.id = Date.now() + idx;
+                if (!Array.isArray(b.daftarKamar)) b.daftarKamar = [];
+                b.daftarKamar = b.daftarKamar.map(k => {
+                    k.riwayat = Array.isArray(k.riwayat) ? k.riwayat : [];
+                    // MIGRASI: format lama pakai penghuniNIK (string)
+                    if (!Array.isArray(k.penghuniList)) {
+                        k.penghuniList = (k.penghuniNIK && k.penghuniNIK !== null)
+                            ? [k.penghuniNIK] : [];
+                    }
+                    delete k.penghuniNIK;
+                    this._updateStatusKamar(k);
+                    return k;
+                });
+                this._updateStatusBarak(b);
+                return b;
+            });
+
+            if (!this.penghuni.length && !this.barak.length) {
+                this.resetInitialData();
+                return;
+            }
+            this.saveToStorage();
+        },
+
         loadUserData() {
             try {
-                const profile = localStorage.getItem(this.STORAGE_KEYS.USER_PROFILE);
-                if (profile) this.userProfile = JSON.parse(profile);
+                const p = localStorage.getItem(this.STORAGE_KEYS.USER_PROFILE);
+                if (p) this.userProfile = { ...this.userProfile, ...JSON.parse(p) };
+                const s = localStorage.getItem(this.STORAGE_KEYS.USER_SETTINGS);
+                if (s) this.settings = { ...this.settings, ...JSON.parse(s) };
+            } catch (e) { console.warn('loadUserData:', e); }
+        },
 
-                const settings = localStorage.getItem(this.STORAGE_KEYS.USER_SETTINGS);
-                if (settings) this.settings = JSON.parse(settings);
+        saveToStorage() {
+            try {
+                localStorage.setItem(this.STORAGE_KEYS.PENGHUNI, JSON.stringify(this.penghuni));
+                localStorage.setItem(this.STORAGE_KEYS.BARAK, JSON.stringify(this.barak));
+                localStorage.setItem(this.STORAGE_KEYS.INVENTARIS, JSON.stringify(this.inventaris));
             } catch (e) {
-                console.error('Gagal memuat profil/pengaturan:', e);
+                Swal.fire('Peringatan', 'Gagal menyimpan data. Penyimpanan penuh?', 'warning');
             }
         },
 
@@ -265,597 +369,464 @@ document.addEventListener('alpine:init', () => {
             try {
                 localStorage.setItem(this.STORAGE_KEYS.USER_PROFILE, JSON.stringify(this.userProfile));
                 localStorage.setItem(this.STORAGE_KEYS.USER_SETTINGS, JSON.stringify(this.settings));
-            } catch (e) {
-                console.error('Gagal menyimpan profil/pengaturan:', e);
-            }
+            } catch (e) { console.warn('saveUserData:', e); }
         },
 
-        // ──────────────────────────────────────────────
-        // Memuat semua data dari localStorage dengan pengecekan ketat
-        // ──────────────────────────────────────────────
-        loadFromStorage() {
-            try {
-                // Helper function untuk memuat array dengan fallback aman
-                const loadArray = (key, defaultValue = []) => {
-                    const stored = localStorage.getItem(key);
-                    if (stored === null) return defaultValue;
+        // ══════════════════════════════════════════════
+        // CHART MANAGEMENT
+        // ══════════════════════════════════════════════
+        chartInstances: {},
 
-                    try {
-                        const parsed = JSON.parse(stored);
-                        // Pastikan hasilnya array (jika bukan → reset ke default)
-                        return Array.isArray(parsed) ? parsed : defaultValue;
-                    } catch (parseError) {
-                        console.warn(`Data di localStorage key "${key}" rusak atau bukan JSON valid. Reset ke default.`, parseError);
-                        return defaultValue;
-                    }
-                };
-
-                // Muat masing-masing data dengan pengecekan tipe
-                this.penghuni = loadArray(this.STORAGE_KEYS.PENGHUNI, []);
-                this.barak = loadArray(this.STORAGE_KEYS.BARAK, []);
-                this.asramaList = loadArray(this.STORAGE_KEYS.ASRAMA, []);
-                this.inventaris = loadArray(this.STORAGE_KEYS.INVENTARIS, []);
-
-                // Optional: Validasi struktur data minimal (opsional tapi sangat membantu debugging)
-                if (this.barak.length > 0 && !this.barak.every(b => typeof b.id === 'number' && Array.isArray(b.daftarKamar))) {
-                    console.warn('Beberapa data barak memiliki struktur tidak valid. Mungkin perlu reset data.');
-                }
-
-                // Jika semua array kosong → inisialisasi data awal (opsional)
-                if (
-                    this.penghuni.length === 0 &&
-                    this.barak.length === 0 &&
-                    this.asramaList.length === 0 &&
-                    this.inventaris.length === 0
-                ) {
-                    console.log('Tidak ada data tersimpan → memuat data awal');
-                    this.resetInitialData();
-                }
-
-                console.log('Data berhasil dimuat dari localStorage:', {
-                    penghuni: this.penghuni.length,
-                    barak: this.barak.length,
-                    asrama: this.asramaList.length,
-                    inventaris: this.inventaris.length
-                });
-            } catch (e) {
-                console.error('Gagal memuat data dari localStorage:', e);
-                // Fallback: reset semua ke array kosong agar aplikasi tetap berjalan
-                this.penghuni = [];
-                this.barak = [];
-                this.asramaList = [];
-                this.inventaris = [];
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal Memuat Data',
-                    text: 'Data penyimpanan rusak atau tidak dapat dibaca. Aplikasi akan menggunakan data kosong. Silakan tambah data baru.',
-                    confirmButtonText: 'OK'
-                });
-            }
-            // Validasi tambahan setelah load barak
-            this.barak = this.barak.map((b, index) => {
-                if (b.id == null) {
-                    console.warn(`Barak index ${index} tidak punya ID → assign ID baru`);
-                    b.id = Date.now() + index;  // atau gunakan UUID jika punya library
-                }
-                if (!Array.isArray(b.daftarKamar)) {
-                    b.daftarKamar = [];
-                }
-                return b;
-            });
-
-            // Simpan kembali jika ada perubahan (opsional)
-            if (this.barak.some(b => b.id == null)) {
-                this.saveToStorage();
-            }
+        _destroyChart(canvasId) {
+            const instance = this.chartInstances[canvasId];
+            if (!instance) return;
+            try { if (instance.animating) instance.stop(); instance.destroy(); } catch (e) { /* abaikan */ }
+            delete this.chartInstances[canvasId];
         },
 
-        saveToStorage() {
-            try {
-                localStorage.setItem(this.STORAGE_KEYS.PENGHUNI, JSON.stringify(this.penghuni));
-                localStorage.setItem(this.STORAGE_KEYS.BARAK, JSON.stringify(this.barak));
-                localStorage.setItem(this.STORAGE_KEYS.ASRAMA, JSON.stringify(this.asramaList));
-                localStorage.setItem(this.STORAGE_KEYS.INVENTARIS, JSON.stringify(this.inventaris));
-            } catch (e) {
-                console.error('Gagal menyimpan:', e);
-                Swal.fire('Peringatan', 'Gagal menyimpan data. Cek kuota penyimpanan browser.', 'warning');
-            }
+        _destroyAllCharts() {
+            Object.keys(this.chartInstances).forEach(id => this._destroyChart(id));
         },
 
-        // ──────────────────────────────────────────────
-        // Init
-        // ──────────────────────────────────────────────
+        _isCanvasReady(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return false;
+            let el = canvas;
+            while (el && el !== document.body) {
+                const style = window.getComputedStyle(el);
+                if (style.display === 'none' || style.visibility === 'hidden') return false;
+                el = el.parentElement;
+            }
+            return !(canvas.offsetWidth === 0 && canvas.offsetHeight === 0);
+        },
+
+        // ══════════════════════════════════════════════
+        // INIT
+        // ══════════════════════════════════════════════
         init() {
-            // ── TAMBAHKAN INI DI BARIS PERTAMA init() ────────
             const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (!isLoggedIn || isLoggedIn !== 'true') {   // atau pakai token kalau nanti upgrade
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sesi Berakhir',
-                    text: 'Silakan login terlebih dahulu',
-                    timer: 2500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = 'login.html';
-                });
-                return;  // hentikan init lebih lanjut
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.replace('login.html');
+                return;
             }
-
-
             this.loadFromStorage();
             this.loadUserData();
-
-            if (this.penghuni.length === 0 && this.barak.length === 0) {
-                this.resetInitialData();
-            }
-
             this.updateDarkMode();
 
-
             this.$watch('penghuni', () => this.saveToStorage());
-            this.$watch('barak', () => this.saveToStorage());
-            this.$watch('asramaList', () => this.saveToStorage());
+            this.$watch('barak', () => {
+                this.saveToStorage();
+                if (this.currentPage === 'dashboard' || this.currentPage === 'laporan')
+                    this._scheduleChartRender();
+            });
             this.$watch('inventaris', () => this.saveToStorage());
             this.$watch('userProfile', () => this.saveUserData());
             this.$watch('settings', () => this.saveUserData());
-
             this.$watch('darkMode', () => {
-                this.updateDarkMode();
-                this.saveUserData();
+                this.updateDarkMode(); this.saveUserData();
+                if (this.currentPage === 'dashboard' || this.currentPage === 'laporan')
+                    this._scheduleChartRender();
+            });
+            this.$watch('currentPage', () => {
+                this._destroyAllCharts();
+                if (this.currentPage === 'dashboard' || this.currentPage === 'laporan')
+                    this._scheduleChartRender();
+            });
 
-            });
-            this.$watch('selectedPenghuniId', (newNik) => {
-                if (newNik) {
-                    const found = this.penghuni.find(p => p.nik === newNik);
-                    this.selectedPenghuni = found || null;
-                } else {
-                    this.selectedPenghuni = null;
-                }
-            });
-            console.log('SIMASRA initialized');
+            this._scheduleChartRender(600);
 
             this.$nextTick(() => {
-                // Delay kecil untuk memastikan semua transisi & watcher selesai
                 setTimeout(() => {
                     const loader = document.getElementById('page-loader');
-                    if (loader) {
-                        loader.style.opacity = '0';
-                        setTimeout(() => {
-                            loader.remove();
-                        }, 800); // waktu fade-out selesai
-                    }
-                }, 3000);
+                    if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 800); }
+                }, 2800);
             });
-
-
         },
 
-        resetInitialData() {
-            this.penghuni = [
-                { nik: "9102017501010001", nama: "Yohanis Duwiri", nisn_nim: "123456789012", distrik: "Tigi", jenjang: "SMA", tahun_masuk: 2023, status: "aktif", jenis_kelamin: "Laki-laki", no_hp: "0812xxxxxxx", kamarSaatIni: null },
-                { nik: "9102026805020002", nama: "Maria Kogoya", nisn_nim: "987654321098", distrik: "Deiyai", jenjang: "Mahasiswa", tahun_masuk: 2022, status: "aktif", jenis_kelamin: "Perempuan", no_hp: "0821xxxxxxx", kamarSaatIni: null },
-                { nik: "9102035508030003", nama: "Daniel Wonda", nisn_nim: "", distrik: "Tigi Barat", jenjang: "SMA", tahun_masuk: 2021, status: "alumni", jenis_kelamin: "Laki-laki", no_hp: "", kamarSaatIni: null },
-                { nik: "9102044409040004", nama: "Siska Tabuni", nisn_nim: "1122334455", distrik: "Paniai", jenjang: "Mahasiswa", tahun_masuk: 2024, status: "aktif", jenis_kelamin: "Perempuan", no_hp: "0852xxxxxxx", kamarSaatIni: null },
-            ];
+        _chartRenderTimer: null,
 
-            this.barak = [
-                {
-                    id: 1, lantai: 1, sisi: "Barak Kiri", rentangKamar: "001–007", kapasitas: 7, terisi: 0, status: "kosong",
-                    daftarKamar: Array(7).fill().map((_, i) => ({
-                        nomor: `10${i + 1}`,
-                        status: "kosong",
-                        penghuniNIK: null,
-                        tanggalMasuk: null,
-                        riwayat: []
-                    }))
-                },
-                {
-                    id: 2, lantai: 1, sisi: "Barak Kanan", rentangKamar: "008–014", kapasitas: 7, terisi: 0, status: "kosong",
-                    daftarKamar: Array(7).fill().map((_, i) => ({
-                        nomor: `10${i + 8}`,
-                        status: "kosong",
-                        penghuniNIK: null,
-                        tanggalMasuk: null
-                    }))
-                },
-                // tambahkan barak lain jika diperlukan
-            ];
-
-            this.asramaList = [
-                { id: 1, nama: "Asrama Putra Tigi", jenis: "Putra", distrik: "Tigi", kapasitas: 120, penghuniSaatIni: 0, status: "aktif" },
-                { id: 2, nama: "Asrama Putri Deiyai", jenis: "Putri", distrik: "Deiyai", kapasitas: 100, penghuniSaatIni: 0, status: "aktif" },
-                { id: 3, nama: "Asrama Campur Paniai", jenis: "Campur", distrik: "Paniai", kapasitas: 80, penghuniSaatIni: 0, status: "aktif" },
-            ];
-
-            this.inventaris = [];
-            this.saveToStorage();
+        _scheduleChartRender(delay = 200) {
+            if (this._chartRenderTimer) clearTimeout(this._chartRenderTimer);
+            this._chartRenderTimer = setTimeout(() => {
+                this._chartRenderTimer = null;
+                this.$nextTick(() => this.renderAllCharts());
+            }, delay);
         },
 
-        // ──────────────────────────────────────────────
-        // Dark Mode
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // RENDER CHART
+        // ══════════════════════════════════════════════
+        renderDonutChart(canvasId, labels, data, colors, centerText = '') {
+            if (!this._isCanvasReady(canvasId)) return;
+            const canvas = document.getElementById(canvasId);
+            this._destroyChart(canvasId);
+            const total = data.reduce((a, b) => a + b, 0);
+            if (total === 0) {
+                try { const ctx = canvas.getContext('2d'); if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height); } catch (e) { }
+                return;
+            }
+            try {
+                const isDark = this.darkMode;
+                const textColor = isDark ? '#e2e8f0' : '#1e293b';
+                const chart = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: isDark ? '#1e293b' : '#ffffff', borderWidth: 3, hoverOffset: 8 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: true, cutout: '68%', onResize: null,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, family: "'DM Sans', sans-serif" }, padding: 16, usePointStyle: true, pointStyleWidth: 10 } },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} (${total > 0 ? Math.round((ctx.parsed / total) * 100) : 0}%)` } }
+                        },
+                        animation: { animateRotate: true, duration: 600, easing: 'easeInOutQuart' }
+                    },
+                    plugins: [{
+                        id: 'centerText_' + canvasId,
+                        afterDraw(chart) {
+                            if (!centerText) return;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) return;
+                            const cx = chartArea.left + chartArea.width / 2;
+                            const cy = chartArea.top + chartArea.height / 2 - 10;
+                            ctx.save();
+                            ctx.font = `bold 28px 'DM Sans', sans-serif`; ctx.fillStyle = textColor;
+                            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                            ctx.fillText(centerText, cx, cy);
+                            ctx.font = `13px 'DM Sans', sans-serif`; ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+                            ctx.fillText('Total', cx, cy + 22);
+                            ctx.restore();
+                        }
+                    }]
+                });
+                this.chartInstances[canvasId] = chart;
+            } catch (e) {
+                console.warn(`Chart render gagal untuk #${canvasId}:`, e.message);
+                delete this.chartInstances[canvasId];
+            }
+        },
+
+        renderAllCharts() {
+            if (this.currentPage === 'dashboard') {
+                const sd = this.laporanStatus;
+                this.renderDonutChart('chart-status-penghuni', sd.map(s => s.label), sd.map(s => s.jumlah), sd.map(s => s.warna), String(this.penghuni.length));
+                const hd = this.laporanHunianBarak;
+                this.renderDonutChart('chart-hunian-barak', hd.map(h => h.label), hd.map(h => h.jumlah), hd.map(h => h.warna), this.hunianPersen + '%');
+                return;
+            }
+            if (this.currentPage === 'laporan') {
+                if (this.laporanDistrik.length > 0) {
+                    const colors = ['#3b82f6', '#8b5cf6', '#22c55e', '#f97316', '#ef4444', '#06b6d4', '#eab308', '#ec4899'];
+                    this.renderDonutChart('chart-laporan-distrik', this.laporanDistrik.map(d => d.distrik), this.laporanDistrik.map(d => d.jumlah), colors.slice(0, this.laporanDistrik.length), String(this.penghuniAktif));
+                }
+                if (this.laporanJenjang.length > 0) {
+                    this.renderDonutChart('chart-laporan-jenjang', this.laporanJenjang.map(j => j.jenjang), this.laporanJenjang.map(j => j.jumlah), ['#3b82f6', '#f97316', '#22c55e', '#8b5cf6'], String(this.penghuniAktif));
+                }
+                this.renderDonutChart('chart-laporan-inventaris', ['Baik', 'Rusak Ringan', 'Rusak Berat'], [this.totalBaik, this.totalRusakRingan, this.totalRusakBerat], ['#22c55e', '#f97316', '#ef4444'], String(this.totalInventaris));
+            }
+        },
+
+        // ══════════════════════════════════════════════
+        // DARK MODE & NAVIGASI
+        // ══════════════════════════════════════════════
         updateDarkMode() {
             document.documentElement.classList.toggle('dark', this.darkMode);
             localStorage.theme = this.darkMode ? 'dark' : 'light';
         },
-
-        toggleDarkMode() {
-            this.darkMode = !this.darkMode;
+        toggleDarkMode() { this.darkMode = !this.darkMode; },
+        setPage(page) {
+            if (this.currentPage === page) return;
+            this.currentPage = page;
+            if (window.innerWidth < 1024) this.sidebarOpen = false;
         },
 
-        // ──────────────────────────────────────────────
-        // Penghuni CRUD
-        // ──────────────────────────────────────────────
-        get filteredPenghuni() {
-            let result = this.penghuni;
-            const q = this.searchQuery.toLowerCase().trim();
-            if (q) {
-                result = result.filter(p =>
-                    (p.nik || '').toLowerCase().includes(q) ||
-                    (p.nama || '').toLowerCase().includes(q) ||
-                    (p.nisn_nim || '').toLowerCase().includes(q) ||
-                    (p.distrik || '').toLowerCase().includes(q)
-                );
-            }
-            if (this.filterJenjang) result = result.filter(p => p.jenjang === this.filterJenjang);
-            if (this.filterTahun) result = result.filter(p => Number(p.tahun_masuk) === Number(this.filterTahun));
-            if (this.filterStatus) result = result.filter(p => p.status === this.filterStatus);
-            return result;
+        // ══════════════════════════════════════════════
+        // UI HELPERS
+        // ══════════════════════════════════════════════
+        toggleNotifications() { this.notificationsOpen = !this.notificationsOpen; this.profileOpen = false; },
+        toggleProfile() { this.profileOpen = !this.profileOpen; this.notificationsOpen = false; },
+        closeDropdowns(event) {
+            if (!event.target.closest('.dropdown')) { this.notificationsOpen = false; this.profileOpen = false; }
+        },
+        getKamarSaatIni(p) {
+            if (!p.kamarSaatIni) return null;
+            const b = this.barak.find(b => b.id === p.kamarSaatIni.barakId);
+            if (!b) return 'Data kamar hilang';
+            return `${p.kamarSaatIni.nomorKamar} — ${b.sisi} Lt.${b.lantai}`;
         },
 
+        // ══════════════════════════════════════════════
+        // CRUD PENGHUNI
+        // ══════════════════════════════════════════════
         openAddModal() {
             this.isEditMode = false;
-            this.form = {
-                nik: '', nama: '', nisn_nim: '', distrik: '', jenjang: 'SMA',
-                tahun_masuk: new Date().getFullYear(), jenis_kelamin: '', no_hp: '', status: 'aktif',
-                kamarSaatIni: null
-            };
+            this.form = { nik: '', nama: '', nisn_nim: '', distrik: '', jenjang: 'SMA', tahun_masuk: new Date().getFullYear(), jenis_kelamin: '', no_hp: '', status: 'aktif', kamarSaatIni: null, tanggalKeluar: null };
             this.modalOpen = true;
         },
-
         openEditModal(penghuni) {
             this.isEditMode = true;
             this.form = { ...penghuni };
             this.modalOpen = true;
         },
-
         savePenghuni() {
-            if (!this.form.nik?.trim()) {
-                return Swal.fire('Error', 'NIK wajib diisi', 'error');
-            }
-
-            if (!this.isEditMode && this.penghuni.some(p => p.nik === this.form.nik.trim())) {
+            if (!this.form.nik?.trim()) return Swal.fire('Error', 'NIK wajib diisi', 'error');
+            if (!this.form.nama?.trim()) return Swal.fire('Error', 'Nama wajib diisi', 'error');
+            if (!this.isEditMode && this.penghuni.some(p => p.nik === this.form.nik.trim()))
                 return Swal.fire('Error', 'NIK sudah terdaftar!', 'error');
-            }
 
-            Swal.fire({
-                title: this.isEditMode ? 'Simpan Perubahan?' : 'Tambah Penghuni Baru?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    if (this.isEditMode) {
-                        const idx = this.penghuni.findIndex(p => p.nik === this.form.nik);
-                        if (idx !== -1) this.penghuni[idx] = { ...this.form };
-                    } else {
-                        this.penghuni.unshift({ ...this.form });
+            Swal.fire({ title: this.isEditMode ? 'Simpan Perubahan?' : 'Tambah Penghuni Baru?', icon: 'question', showCancelButton: true, confirmButtonColor: '#3b82f6', cancelButtonText: 'Batal', confirmButtonText: 'Ya, Simpan' })
+                .then(r => {
+                    if (!r.isConfirmed) return;
+                    const data = { ...this.form };
+                    data.nik = data.nik.trim();
+                    if (this.isEditMode && data.status !== 'aktif') {
+                        const lama = this.penghuni.find(p => p.nik === data.nik);
+                        if (lama && lama.status === 'aktif' && lama.kamarSaatIni) {
+                            this._kosongkanKamarDariPenghuni(lama.nik);
+                            data.kamarSaatIni = null;
+                        }
+                        if (!data.tanggalKeluar) data.tanggalKeluar = new Date().toISOString().split('T')[0];
                     }
+                    this.penghuni = this.isEditMode
+                        ? this.penghuni.map(p => p.nik === data.nik ? data : p)
+                        : [data, ...this.penghuni];
                     this.modalOpen = false;
-                    Swal.fire('Berhasil', 'Data tersimpan', 'success');
-                }
-            });
+                    if (this.currentPage === 'dashboard' || this.currentPage === 'laporan') this._scheduleChartRender();
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data tersimpan', timer: 1500, showConfirmButton: false });
+                });
         },
 
-        deletePenghuni(penghuni) {
-            Swal.fire({
-                title: 'Hapus Penghuni?',
-                text: `Yakin menghapus data penghuni ${penghuni.nama} (${penghuni.nik})?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Hapus'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.penghuni = this.penghuni.filter(p => p.nik !== penghuni.nik);
-                    Swal.fire('Terhapus!', 'Data penghuni telah dihapus.', 'success');
-                }
+        _kosongkanKamarDariPenghuni(nik) {
+            const newBarak = JSON.parse(JSON.stringify(this.barak));
+            newBarak.forEach(b => {
+                b.daftarKamar.forEach(k => {
+                    const idx = (k.penghuniList || []).indexOf(nik);
+                    if (idx !== -1) {
+                        const lastR = (k.riwayat || []).slice().reverse().find(rv => rv.nik === nik && !rv.tanggalKeluar);
+                        if (lastR) { lastR.tanggalKeluar = new Date().toISOString().split('T')[0]; lastR.status = 'keluar'; }
+                        k.penghuniList.splice(idx, 1);
+                        this._updateStatusKamar(k);
+                    }
+                });
+                this._updateStatusBarak(b);
             });
+            this.barak = newBarak;
         },
-        // ──────────────────────────────────────────────
-        // Assign Penghuni ke Barak (Versi Final - Aman & Konsisten)
-        // ──────────────────────────────────────────────
+
+        // ══════════════════════════════════════════════
+        // RIWAYAT PENGHUNI
+        // ══════════════════════════════════════════════
+        showRiwayat(penghuni) {
+            this.selectedPenghuni = penghuni;
+            this.selectedRiwayat = [];
+            this.barak.forEach(b => {
+                b.daftarKamar.forEach(k => {
+                    (k.riwayat || []).forEach(r => {
+                        if (r.nik === penghuni.nik) {
+                            this.selectedRiwayat.push({
+                                kamar: k.nomor, barak: `${b.sisi} Lt.${b.lantai}`,
+                                tanggalMasuk: r.tanggalMasuk || '-', tanggalKeluar: r.tanggalKeluar || null,
+                                status: r.tanggalKeluar ? 'Riwayat' : 'Saat Ini'
+                            });
+                        }
+                    });
+                });
+            });
+            if (!this.selectedRiwayat.length && penghuni.kamarSaatIni) {
+                const b = this.barak.find(b => b.id === penghuni.kamarSaatIni.barakId);
+                if (b) this.selectedRiwayat = [{ kamar: penghuni.kamarSaatIni.nomorKamar, barak: `${b.sisi} Lt.${b.lantai}`, tanggalMasuk: penghuni.kamarSaatIni.tanggalMasuk || '-', tanggalKeluar: null, status: 'Saat Ini' }];
+            }
+            this.riwayatOpen = true;
+        },
+
+        // ══════════════════════════════════════════════
+        // CRUD BARAK
+        // ══════════════════════════════════════════════
+        openAddBarakModal() {
+            this.isEditBarak = false;
+            this.barakForm = { lantai: 1, sisi: '', kapasitas: 7 };
+            this.barakModalOpen = true;
+        },
+        openEditBarakModal(barak) {
+            this.isEditBarak = true;
+            this.barakForm = { id: barak.id, lantai: barak.lantai, sisi: barak.sisi, kapasitas: barak.kapasitas };
+            this.barakModalOpen = true;
+        },
+        saveBarak() {
+            if (!this.barakForm.sisi?.trim()) return Swal.fire('Error', 'Nama/sisi barak wajib diisi', 'error');
+            if (!this.barakForm.lantai || isNaN(this.barakForm.lantai)) return Swal.fire('Error', 'Lantai harus berupa angka', 'error');
+            if (!this.barakForm.kapasitas || Number(this.barakForm.kapasitas) < 1) return Swal.fire('Error', 'Kapasitas minimal 1 kamar', 'error');
+
+            Swal.fire({ title: this.isEditBarak ? 'Simpan Perubahan Barak?' : 'Tambah Barak Baru?', icon: 'question', showCancelButton: true, confirmButtonColor: '#3b82f6', cancelButtonText: 'Batal', confirmButtonText: 'Ya, Simpan' })
+                .then(r => {
+                    if (!r.isConfirmed) return;
+                    const kap = Number(this.barakForm.kapasitas);
+                    const lt = Number(this.barakForm.lantai);
+
+                    if (this.isEditBarak) {
+                        const idx = this.barak.findIndex(b => b.id === this.barakForm.id);
+                        if (idx === -1) return;
+                        const existing = this.barak[idx];
+                        let daftarKamar = JSON.parse(JSON.stringify(existing.daftarKamar));
+                        const oldKap = daftarKamar.length;
+                        if (kap > oldKap) {
+                            for (let i = oldKap; i < kap; i++) {
+                                daftarKamar.push({ nomor: this._generateNomorKamar(lt, i + 1), status: 'kosong', penghuniList: [], tanggalMasuk: null, riwayat: [] });
+                            }
+                        } else if (kap < oldKap) {
+                            const adaPenghuni = daftarKamar.slice(kap).some(k => (k.penghuniList || []).length > 0);
+                            if (adaPenghuni) return Swal.fire('Error', 'Tidak bisa mengurangi kamar. Beberapa kamar yang akan dihapus masih berisi penghuni.', 'error');
+                            daftarKamar = daftarKamar.slice(0, kap);
+                        }
+                        daftarKamar.forEach(k => this._updateStatusKamar(k));
+                        const newBarak = { ...existing, sisi: this.barakForm.sisi.trim(), lantai: lt, kapasitas: kap, daftarKamar, rentangKamar: daftarKamar.length ? `${daftarKamar[0].nomor}–${daftarKamar[daftarKamar.length - 1].nomor}` : '-' };
+                        this._updateStatusBarak(newBarak);
+                        this.barak = this.barak.map((b, i) => i === idx ? newBarak : b);
+                    } else {
+                        const existingKamarCount = this.barak.filter(b => b.lantai === lt).reduce((s, b) => s + b.daftarKamar.length, 0);
+                        const daftarKamar = Array.from({ length: kap }, (_, i) => ({ nomor: this._generateNomorKamar(lt, existingKamarCount + i + 1), status: 'kosong', penghuniList: [], tanggalMasuk: null, riwayat: [] }));
+                        const newBarak = { id: Date.now(), lantai: lt, sisi: this.barakForm.sisi.trim(), kapasitas: kap, terisi: 0, status: 'kosong', rentangKamar: `${daftarKamar[0].nomor}–${daftarKamar[daftarKamar.length - 1].nomor}`, daftarKamar };
+                        this.barak = [...this.barak, newBarak];
+                    }
+                    this.barakModalOpen = false;
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data barak tersimpan', timer: 1500, showConfirmButton: false });
+                });
+        },
+
+        _generateNomorKamar(lantai, urut) {
+            return `${lantai}${String(urut).padStart(2, '0')}`;
+        },
+
+        deleteBarak(barak) {
+            const adaPenghuni = (barak.daftarKamar || []).some(k => (k.penghuniList || []).length > 0);
+            if (adaPenghuni) return Swal.fire('Tidak Bisa Dihapus', 'Masih ada penghuni di barak ini. Keluarkan semua penghuni terlebih dahulu.', 'warning');
+            Swal.fire({ title: 'Hapus Barak?', text: `Yakin hapus barak "${barak.sisi} Lantai ${barak.lantai}"?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal' })
+                .then(r => {
+                    if (r.isConfirmed) { this.barak = this.barak.filter(b => b.id !== barak.id); Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1500, showConfirmButton: false }); }
+                });
+        },
+
+        // ══════════════════════════════════════════════
+        // ASSIGN PENGHUNI ke kamar (mendukung multi-penghuni)
+        // ══════════════════════════════════════════════
+        openAssignModal(barak) {
+            this.assignSelectedBarakId = (barak && barak.id != null) ? String(barak.id) : '';
+            this.selectedPenghuniId = '';
+            this.assignSelectedKamarNomor = '';
+            this.selectedKamar = barak || null;
+            this.assignModalOpen = true;
+        },
+        onAssignBarakChange() { this.assignSelectedKamarNomor = ''; },
+
         assignPenghuni() {
-            // 1. Pengecekan awal wajib (harus selalu ada)
-            if (!this.selectedKamar) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Data Barak Hilang',
-                    text: 'Data barak belum dipilih atau hilang. Tutup modal dan coba lagi.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('[assignPenghuni] selectedKamar kosong atau null');
-                return;
-            }
+            if (!this.selectedPenghuniId) return Swal.fire('Peringatan', 'Pilih penghuni terlebih dahulu.', 'warning');
+            if (!this.assignSelectedBarakId) return Swal.fire('Peringatan', 'Pilih barak terlebih dahulu.', 'warning');
+            if (!this.assignSelectedKamarNomor) return Swal.fire('Peringatan', 'Pilih kamar terlebih dahulu.', 'warning');
 
-            if (!this.selectedPenghuniId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Penghuni Belum Dipilih',
-                    text: 'Silakan pilih salah satu penghuni terlebih dahulu.',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // 2. Pastikan this.barak adalah array
-            if (!Array.isArray(this.barak)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Kesalahan Sistem',
-                    text: 'Data daftar barak tidak valid. Silakan refresh halaman atau hubungi pengembang.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('[assignPenghuni] this.barak bukan array:', this.barak);
-                return;
-            }
-
-            // 3. Cari penghuni berdasarkan NIK
             const penghuni = this.penghuni.find(p => p.nik === this.selectedPenghuniId);
-            if (!penghuni) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Penghuni Tidak Ditemukan',
-                    text: `NIK ${this.selectedPenghuniId} tidak ada di daftar penghuni.`,
-                    confirmButtonText: 'OK'
-                });
-                console.warn('[assignPenghuni] Penghuni dengan NIK tidak ditemukan:', this.selectedPenghuniId);
-                return;
+            if (!penghuni) return Swal.fire('Error', 'Penghuni tidak ditemukan.', 'error');
+            if (penghuni.status !== 'aktif') return Swal.fire('Peringatan', 'Hanya penghuni aktif yang bisa ditempatkan.', 'warning');
+            if (penghuni.kamarSaatIni) return Swal.fire('Peringatan', `${penghuni.nama} sudah menempati kamar lain.`, 'warning');
+
+            const barakIdx = this.barak.findIndex(b => String(b.id) === String(this.assignSelectedBarakId));
+            if (barakIdx === -1) return Swal.fire('Error', 'Barak tidak ditemukan.', 'error');
+
+            const barak = this.barak[barakIdx];
+            const kamarIdx = barak.daftarKamar.findIndex(k => k.nomor === this.assignSelectedKamarNomor);
+            if (kamarIdx === -1) return Swal.fire('Error', 'Kamar tidak ditemukan.', 'error');
+
+            const kamar = barak.daftarKamar[kamarIdx];
+            if (!this._kamarBisaDisisi(kamar)) {
+                return Swal.fire('Error', `Kamar ${kamar.nomor} sudah penuh (maks. ${this.MAX_PENGHUNI_PER_KAMAR} penghuni).`, 'error');
             }
 
-            // 4. Validasi status & kamar saat ini
-            if (penghuni.status !== 'aktif') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Status Tidak Valid',
-                    text: 'Hanya penghuni dengan status "aktif" yang dapat ditempatkan.',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
+            const jumlahSaatIni = this._jumlahPenghuniKamar(kamar);
+            const sisaSlot = this.MAX_PENGHUNI_PER_KAMAR - jumlahSaatIni;
 
-            if (penghuni.kamarSaatIni) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sudah Ditempatkan',
-                    text: `${penghuni.nama} sudah menempati kamar lain.`,
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // 5. Cari barak yang sesuai dengan selectedKamar.id
-            const barakId = this.selectedKamar.id;
-            if (barakId == null) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ID Barak Tidak Valid',
-                    text: 'ID barak tidak ditemukan atau undefined. Tutup modal dan coba lagi.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('[assignPenghuni] selectedKamar.id undefined:', this.selectedKamar);
-                return;
-            }
-
-            const barak = this.barak.find(b => b.id === barakId);
-            if (!barak) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Barak Tidak Ditemukan',
-                    text: `Barak dengan ID ${barakId} tidak ada di daftar sistem.`,
-                    confirmButtonText: 'OK'
-                });
-                console.error('[assignPenghuni] Barak tidak ditemukan untuk id:', barakId, 'Data barak saat ini:', this.barak);
-                return;
-            }
-
-            // 6. Pastikan barak punya daftarKamar yang valid
-            if (!Array.isArray(barak.daftarKamar)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Data Barak Rusak',
-                    text: 'Daftar kamar di barak ini tidak valid.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('[assignPenghuni] barak.daftarKamar bukan array:', barak);
-                return;
-            }
-
-            // 7. Cari kamar kosong
-            const kamarKosong = barak.daftarKamar.find(k => k.status === 'kosong');
-            if (!kamarKosong) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Tidak Ada Kamar Kosong',
-                    text: `Semua kamar di ${barak.sisi} Lantai ${barak.lantai} sudah terisi.`,
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // 8. Konfirmasi user
             Swal.fire({
                 title: 'Konfirmasi Penempatan',
-                html: `
-            <div class="text-left">
-                <p><strong>Penghuni:</strong> ${penghuni.nama} (${penghuni.nik})</p>
-                <p><strong>Ditempatkan di:</strong> Kamar ${kamarKosong.nomor}</p>
-                <p><strong>Barak:</strong> ${barak.sisi} – Lantai ${barak.lantai}</p>
-                <p class="mt-3 text-sm text-gray-500">Tindakan ini akan mengubah status kamar dan penghuni.</p>
-            </div>
-        `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Tempatkan',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (!result.isConfirmed) return;
+                html: `<b>${penghuni.nama}</b> akan ditempatkan di kamar <b>${this.assignSelectedKamarNomor}</b><br>
+                       <small>${barak.sisi} – Lantai ${barak.lantai}</small><br>
+                       <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style="background:#dbeafe;color:#1d4ed8">
+                         Penghuni: ${jumlahSaatIni} → ${jumlahSaatIni + 1} / ${this.MAX_PENGHUNI_PER_KAMAR} &nbsp;|&nbsp; Sisa slot: ${sisaSlot - 1}
+                       </span>`,
+                icon: 'question', showCancelButton: true,
+                confirmButtonColor: '#3b82f6', confirmButtonText: 'Ya, Tempatkan', cancelButtonText: 'Batal'
+            }).then(r => {
+                if (!r.isConfirmed) return;
+                this.assigning = true;
 
                 const tanggal = new Date().toISOString().split('T')[0];
+                const newBarak = JSON.parse(JSON.stringify(this.barak));
+                const tBarak = newBarak[barakIdx];
+                const tKamar = tBarak.daftarKamar[kamarIdx];
 
-                // Tambahkan ke riwayat kamar
-                kamarKosong.riwayat = kamarKosong.riwayat || [];  // pastikan array
-                kamarKosong.riwayat.push({
-                    nik: penghuni.nik,
-                    nama: penghuni.nama,
-                    tanggalMasuk: tanggal,
-                    tanggalKeluar: null,  // akan diisi saat keluar
-                    status: 'aktif'
-                });
+                tKamar.penghuniList = tKamar.penghuniList || [];
+                tKamar.penghuniList.push(penghuni.nik);
+                tKamar.riwayat = tKamar.riwayat || [];
+                tKamar.riwayat.push({ nik: penghuni.nik, nama: penghuni.nama, tanggalMasuk: tanggal, tanggalKeluar: null, status: 'aktif' });
 
-                // Update kamar & penghuni seperti biasa
-                kamarKosong.status = 'terisi';
-                kamarKosong.penghuniNIK = penghuni.nik;
-                kamarKosong.tanggalMasuk = tanggal;
+                this._updateStatusKamar(tKamar);
+                this._updateStatusBarak(tBarak);
 
-                // Update penghuni
-                penghuni.kamarSaatIni = {
-                    barakId: barak.id,
-                    nomorKamar: kamarKosong.nomor,
-                    tanggalMasuk: tanggal
-                };
+                this.barak = newBarak;
+                this.penghuni = this.penghuni.map(p =>
+                    p.nik === penghuni.nik
+                        ? { ...p, kamarSaatIni: { barakId: tBarak.id, nomorKamar: tKamar.nomor, tanggalMasuk: tanggal } }
+                        : p
+                );
 
-                // Update status barak
-                barak.terisi = barak.daftarKamar.filter(k => k.status === 'terisi').length;
-                barak.status = barak.terisi >= barak.kapasitas ? 'penuh' : 'terisi_sebagian';
-
-                // Tutup modal & reset form
                 this.assignModalOpen = false;
                 this.selectedPenghuniId = '';
-                this.selectedKamar = null; // reset agar aman untuk pemakaian berikutnya
+                this.assignSelectedBarakId = '';
+                this.assignSelectedKamarNomor = '';
+                this.selectedKamar = null;
+                this.assigning = false;
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: `${penghuni.nama} berhasil ditempatkan di kamar ${kamarKosong.nomor}`,
-                    timer: 2500,
-                    showConfirmButton: false
-                });
-
-                // Update occupancy & simpan
-                this.recalculateOccupancy();
-                this.saveToStorage();
+                Swal.fire({ icon: 'success', title: 'Berhasil!', text: `${penghuni.nama} ditempatkan di kamar ${tKamar.nomor} – ${tBarak.sisi}`, timer: 2000, showConfirmButton: false });
+                if (this.currentPage === 'dashboard' || this.currentPage === 'laporan') this._scheduleChartRender();
             });
         },
 
-        kosongkanKamar(barak, kamar) {
-            if (kamar.status !== 'terisi') return;
-
-            const penghuni = this.penghuni.find(p => p.nik === kamar.penghuniNIK);
-            const nama = penghuni ? penghuni.nama : '(data hilang)';
+        kosongkanSatuPenghuni(barak, kamar, nik) {
+            const penghuni = this.penghuni.find(p => p.nik === nik);
+            const nama = penghuni?.nama || '(data hilang)';
 
             Swal.fire({
-                title: 'Kosongkan Kamar?',
+                title: 'Keluarkan Penghuni?',
                 text: `Keluarkan ${nama} dari kamar ${kamar.nomor}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Keluarkan'
-            }).then(result => {
-                if (!result.isConfirmed) return;
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#ef4444', confirmButtonText: 'Ya, Keluarkan', cancelButtonText: 'Batal'
+            }).then(r => {
+                if (!r.isConfirmed) return;
 
-                // Update riwayat sebelum kosongkan
-                const lastRiwayat = kamar.riwayat?.[kamar.riwayat.length - 1];
-                if (lastRiwayat && !lastRiwayat.tanggalKeluar) {
-                    lastRiwayat.tanggalKeluar = new Date().toISOString().split('T')[0];
-                    lastRiwayat.status = 'keluar';
+                const barakIdx = this.barak.findIndex(b => b.id === barak.id);
+                if (barakIdx === -1) return;
+
+                const newBarak = JSON.parse(JSON.stringify(this.barak));
+                const tBarak = newBarak[barakIdx];
+                const tKamar = tBarak.daftarKamar.find(k => k.nomor === kamar.nomor);
+                if (!tKamar) return;
+
+                const nikIdx = (tKamar.penghuniList || []).indexOf(nik);
+                if (nikIdx !== -1) tKamar.penghuniList.splice(nikIdx, 1);
+
+                const lastR = (tKamar.riwayat || []).slice().reverse().find(rv => rv.nik === nik && !rv.tanggalKeluar);
+                if (lastR) { lastR.tanggalKeluar = new Date().toISOString().split('T')[0]; lastR.status = 'keluar'; }
+
+                this._updateStatusKamar(tKamar);
+                this._updateStatusBarak(tBarak);
+                this.barak = newBarak;
+
+                if (this.selectedDetailBarak && this.selectedDetailBarak.id === tBarak.id) {
+                    this.selectedDetailBarak = tBarak;
                 }
 
-                // Kosongkan kamar
-                kamar.status = 'kosong';
-                kamar.penghuniNIK = null;
-                kamar.tanggalMasuk = null;
-
-                // Update penghuni
-                if (penghuni && penghuni.kamarSaatIni?.nomorKamar === kamar.nomor) {
-                    penghuni.kamarSaatIni = null;
+                if (penghuni) {
+                    this.penghuni = this.penghuni.map(p => p.nik === nik ? { ...p, kamarSaatIni: null } : p);
                 }
 
-                this.recalculateOccupancy();
-                this.saveToStorage();  // penting agar riwayat tersimpan
-                Swal.fire('Berhasil', `Kamar ${kamar.nomor} telah dikosongkan`, 'success');
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: `${nama} dikeluarkan dari kamar ${kamar.nomor}`, timer: 1500, showConfirmButton: false });
+                if (this.currentPage === 'dashboard' || this.currentPage === 'laporan') this._scheduleChartRender();
             });
-        },
-
-        // ──────────────────────────────────────────────
-        // Barak & Occupancy
-        // ──────────────────────────────────────────────
-        recalculateOccupancy() {
-            this.barak.forEach(b => {
-                b.terisi = b.daftarKamar.filter(k => k.status === 'terisi').length;
-                b.status = b.terisi === 0 ? 'kosong' :
-                    b.terisi < b.kapasitas ? 'terisi_sebagian' : 'penuh';
-            });
-
-            const occupancy = {};
-            this.barak.forEach(b => {
-                if (b.asramaId) {
-                    occupancy[b.asramaId] = (occupancy[b.asramaId] || 0) + b.terisi;
-                }
-            });
-
-            this.asramaList.forEach(a => {
-                a.penghuniSaatIni = occupancy[a.id] || 0;
-            });
-        },
-
-        get filteredBarak() {
-            let result = this.barak;
-            if (this.filterStatusKamar) result = result.filter(b => b.status === this.filterStatusKamar);
-            return result;
-        },
-
-        get kamarKosongTotal() {
-            return this.barak.reduce((sum, b) => sum + b.daftarKamar.filter(k => k.status === 'kosong').length, 0);
-        },
-
-        openAssignModal(barak) {
-            console.log('openAssignModal dipanggil dengan parameter:', barak);
-
-            // Jika parameter adalah array (kesalahan umum), ambil yang pertama atau beri error
-            if (Array.isArray(barak)) {
-                console.warn('openAssignModal menerima array barak, seharusnya objek tunggal');
-                if (barak.length > 0) {
-                    barak = barak[0];  // fallback ambil yang pertama (opsional, bisa dihapus)
-                    Swal.fire('Peringatan', 'Data barak yang dipilih tidak tepat, menggunakan barak pertama.', 'warning');
-                } else {
-                    Swal.fire('Error', 'Tidak ada barak yang valid untuk di-assign', 'error');
-                    return;
-                }
-            }
-
-            if (!barak || typeof barak !== 'object' || barak.id == null) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Data Barak Tidak Valid',
-                    text: 'Pilih barak dari daftar dengan benar.',
-                    confirmButtonText: 'OK'
-                });
-                console.error('Parameter barak invalid:', barak);
-                return;
-            }
-
-            if (!Array.isArray(barak.daftarKamar)) {
-                Swal.fire('Error', 'Barak ini tidak memiliki daftar kamar', 'error');
-                return;
-            }
-
-            this.selectedKamar = { ...barak };
-            this.selectedPenghuniId = '';
-            this.assignModalOpen = true;
         },
 
         openDetailKamarModal(barak) {
@@ -864,789 +835,219 @@ document.addEventListener('alpine:init', () => {
         },
 
         showRiwayatKamar(barak) {
-            if (!barak || !Array.isArray(barak.daftarKamar)) {
-                Swal.fire('Error', 'Data barak tidak valid', 'error');
-                return;
-            }
-
+            if (!barak || !Array.isArray(barak.daftarKamar)) return Swal.fire('Error', 'Data barak tidak valid', 'error');
             this.selectedKamarRiwayat = barak;
-
-            // Kumpulkan semua riwayat dari semua kamar di barak ini
-            const allRiwayat = [];
+            const all = [];
             barak.daftarKamar.forEach(kamar => {
-                if (kamar.riwayat && Array.isArray(kamar.riwayat)) {
-                    kamar.riwayat.forEach(entry => {
-                        allRiwayat.push({
-                            kamar: kamar.nomor,
-                            penghuni: entry.nama || '(nama hilang)',
-                            periode: entry.tanggalKeluar
-                                ? `${entry.tanggalMasuk} – ${entry.tanggalKeluar}`
-                                : `${entry.tanggalMasuk} – Sekarang`,
-                            status: entry.status || (entry.tanggalKeluar ? 'keluar' : 'aktif')
-                        });
+                (kamar.riwayat || []).forEach(entry => {
+                    all.push({
+                        kamar: kamar.nomor, penghuni: entry.nama || '(hilang)',
+                        periode: entry.tanggalKeluar ? `${entry.tanggalMasuk} – ${entry.tanggalKeluar}` : `${entry.tanggalMasuk} – Sekarang`,
+                        status: entry.tanggalKeluar ? 'keluar' : 'aktif'
                     });
-                }
+                });
             });
-
-            // Sort berdasarkan tanggal masuk terbaru (opsional)
-            allRiwayat.sort((a, b) => new Date(b.periode.split(' – ')[0]) - new Date(a.periode.split(' – ')[0]));
-
-            this.selectedRiwayatKamar = allRiwayat;
-
+            all.sort((a, b) => new Date(b.periode.split(' – ')[0]) - new Date(a.periode.split(' – ')[0]));
+            this.selectedRiwayatKamar = all;
             this.riwayatKamarOpen = true;
         },
 
-        // ──────────────────────────────────────────────
-        // Fungsi Riwayat Penghuni
-        // ──────────────────────────────────────────────
-        showRiwayat(penghuni) {
-            if (!penghuni) {
-                return Swal.fire('Error', 'Data penghuni tidak ditemukan', 'error');
-            }
-
-            this.selectedPenghuni = penghuni;
-            this.selectedRiwayat = []; // Reset dulu
-
-            // Contoh data riwayat sementara (nanti ganti dengan data real dari storage atau log)
-            // Di masa depan: load dari array riwayat yang tersimpan di penghuni atau kamar
-            this.selectedRiwayat = [
-                {
-                    kamar: penghuni.kamarSaatIni ? penghuni.kamarSaatIni.nomorKamar : '-',
-                    barak: penghuni.kamarSaatIni ? this.barak.find(b => b.id === penghuni.kamarSaatIni.barakId)?.sisi || '-' : '-',
-                    tanggalMasuk: penghuni.kamarSaatIni?.tanggalMasuk || '-',
-                    tanggalKeluar: null,
-                    status: 'Saat Ini'
-                },
-                // Tambah riwayat lama jika sudah implementasi history
-                // Contoh dummy:
-                // { kamar: '102', barak: 'Barak Kiri Lt 1', tanggalMasuk: '2023-01-15', tanggalKeluar: '2024-06-30', status: 'Riwayat' }
-            ];
-
-            // Jika ingin lebih realistis, cek riwayat dari kamar yang pernah ditempati
-            if (penghuni.kamarSaatIni) {
-                const barak = this.barak.find(b => b.id === penghuni.kamarSaatIni.barakId);
-                if (barak) {
-                    const kamar = barak.daftarKamar.find(k => k.nomor === penghuni.kamarSaatIni.nomorKamar);
-                    if (kamar && kamar.riwayat) {
-                        this.selectedRiwayat = kamar.riwayat.map(r => ({
-                            kamar: r.nomorKamar || penghuni.kamarSaatIni.nomorKamar,
-                            barak: barak.sisi + ' Lt ' + barak.lantai,
-                            tanggalMasuk: r.tanggalMasuk,
-                            tanggalKeluar: r.tanggalKeluar || 'Sekarang',
-                            status: r.tanggalKeluar ? 'Riwayat' : 'Saat Ini'
-                        }));
-                    }
-                }
-            }
-
-            this.riwayatOpen = true;
-        },
-        // ──────────────────────────────────────────────
-        // Getter UI & Statistik Barak
-        // ──────────────────────────────────────────────
-        get totalBarak() {
-            return this.barak.length;
-        },
-
-        get barakTerisi() {
-            return this.barak.filter(b =>
-                b.status !== 'kosong' && b.status !== 'maintenance'
-            ).length;
-        },
-
-        get barakKosong() {
-            return this.barak.filter(b => b.status === 'kosong').length;
-        },
-
-        getKamarSaatIni(penghuni) {
-            if (!penghuni.kamarSaatIni) return 'Belum ditempatkan';
-            const barak = this.barak.find(b => b.id === penghuni.kamarSaatIni.barakId);
-            if (!barak) return 'Data kamar hilang';
-            return `${penghuni.kamarSaatIni.nomorKamar} — ${barak.sisi} Lt ${barak.lantai}`;
-        },
-
-        // ──────────────────────────────────────────────
-        // Fungsi UI Dasar
-        // ──────────────────────────────────────────────
-        toggleNotifications() {
-            this.notificationsOpen = !this.notificationsOpen;
-            this.profileOpen = false;
-        },
-
-        toggleProfile() {
-            this.profileOpen = !this.profileOpen;
-            this.notificationsOpen = false;
-        },
-
-        closeDropdowns(event) {
-            if (!event.target.closest('.dropdown')) {
-                this.notificationsOpen = false;
-                this.profileOpen = false;
-            }
-        },
-
-        // Simpan Profil Saya
-        saveProfile() {
-            this.saving = true;
-
-            if (!this.userProfile.name?.trim() || !this.userProfile.email?.trim()) {
-                Swal.fire('Error', 'Nama dan Email wajib diisi', 'error');
-                this.saving = false;
-                return;
-            }
-
-            if (!this.userProfile.email.includes('@') || !this.userProfile.email.includes('.')) {
-                Swal.fire('Error', 'Format email tidak valid', 'error');
-                this.saving = false;
-                return;
-            }
-
-            Swal.fire({
-                title: 'Simpan Perubahan Profil?',
-                text: "Data profil Anda akan diperbarui.",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonText: 'Batal',
-                confirmButtonText: 'Ya, Simpan'
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    this.saving = false;
-                    return;
-                }
-
-                // Simpan data
-                this.saveUserData();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Profil Anda telah diperbarui.',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    this.profileModalOpen = false;  // TUTUP MODAL SETELAH SUKSES
-                });
-
-                this.saving = false;
-            });
-        },
-
-        // Simpan Pengaturan Akun
-        saveSettings() {
-            this.saving = true;
-
-            // Validasi password jika diisi
-            if (this.settings.oldPassword || this.settings.newPassword || this.settings.confirmPassword) {
-                if (!this.settings.oldPassword) {
-                    Swal.fire('Error', 'Kata sandi lama wajib diisi jika ingin mengganti', 'error');
-                    this.saving = false;
-                    return;
-                }
-                if (!this.settings.newPassword) {
-                    Swal.fire('Error', 'Kata sandi baru wajib diisi', 'error');
-                    this.saving = false;
-                    return;
-                }
-                if (this.settings.newPassword !== this.settings.confirmPassword) {
-                    Swal.fire('Error', 'Konfirmasi kata sandi tidak cocok', 'error');
-                    this.saving = false;
-                    return;
-                }
-                if (this.settings.newPassword.length < 6) {
-                    Swal.fire('Error', 'Kata sandi baru minimal 6 karakter', 'error');
-                    this.saving = false;
-                    return;
-                }
-            }
-
-            Swal.fire({
-                title: 'Simpan Pengaturan Akun?',
-                text: "Perubahan akan disimpan.",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonText: 'Batal',
-                confirmButtonText: 'Ya, Simpan'
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    this.saving = false;
-                    return;
-                }
-
-                // Simpan data
-                this.saveUserData();
-
-                // Reset form password
-                this.settings.oldPassword = '';
-                this.settings.newPassword = '';
-                this.settings.confirmPassword = '';
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Pengaturan akun telah diperbarui.',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    this.profileModalOpen = false;  // TUTUP MODAL SETELAH SUKSES
-                });
-
-                this.saving = false;
-            });
-        },
-
-        setPage(page) {
-            this.pageLoading = true;
-            this.currentPage = page;
-            if (window.innerWidth < 1024) {
-                this.sidebarOpen = false;
-            }
-            // Delay kecil untuk simulasi loading
-            setTimeout(() => {
-                this.pageLoading = false;
-            }, 600);
-        },
-
-
-        // ──────────────────────────────────────────────
-        // Fungsi Asrama (CRUD)
-        // ──────────────────────────────────────────────
-        openAddAsramaModal() {
-            this.isEditAsrama = false;
-            this.asramaForm = {
-                nama: '',
-                jenis: '',
-                distrik: '',
-                kapasitas: '',
-                status: 'aktif'
-            };
-            this.asramaModalOpen = true;
-        },
-
-        openEditAsramaModal(asrama) {
-            this.isEditAsrama = true;
-            this.asramaForm = { ...asrama };
-            this.asramaModalOpen = true;
-        },
-
-        saveAsrama() {
-            if (!this.asramaForm.nama?.trim()) {
-                return Swal.fire('Error', 'Nama asrama wajib diisi', 'error');
-            }
-            if (!this.asramaForm.kapasitas || isNaN(this.asramaForm.kapasitas) || this.asramaForm.kapasitas <= 0) {
-                return Swal.fire('Error', 'Kapasitas harus angka lebih dari 0', 'error');
-            }
-
-            Swal.fire({
-                title: this.isEditAsrama ? 'Simpan perubahan asrama?' : 'Tambah asrama baru?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb'
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                if (this.isEditAsrama) {
-                    const idx = this.asramaList.findIndex(a => a.id === this.asramaForm.id);
-                    if (idx !== -1) {
-                        this.asramaList[idx] = { ...this.asramaForm };
-                    }
-                } else {
-                    this.asramaList.push({
-                        id: this.asramaList.length + 1,
-                        ...this.asramaForm,
-                        penghuniSaatIni: 0
-                    });
-                }
-
-                this.asramaModalOpen = false;
-                Swal.fire('Sukses', 'Data asrama tersimpan', 'success');
-            });
-        },
-
-        // ──────────────────────────────────────────────
-        // Fungsi Detail Asrama (Modal Detail)
-        // ──────────────────────────────────────────────
-        showDetailAsrama(asrama) {
-            if (!asrama) {
-                return Swal.fire('Error', 'Data asrama tidak ditemukan', 'error');
-            }
-
-            this.selectedDetailAsrama = { ...asrama }; // copy object agar aman diedit jika perlu
-
-            // Hitung ulang data tambahan jika diperlukan (opsional)
-            this.selectedDetailAsrama.hunian = asrama.kapasitas > 0
-                ? Math.round((asrama.penghuniSaatIni / asrama.kapasitas) * 100)
-                : 0;
-
-            // Buka modal
-            this.detailAsramaOpen = true;  // ← pastikan state ini ada di Alpine
-        },
-
-        // ──────────────────────────────────────────────
-        // Fungsi Inventaris (CRUD)
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // CRUD INVENTARIS
+        // ══════════════════════════════════════════════
         openAddInventarisModal() {
             this.isEditInventaris = false;
-            this.inventarisForm = {
-                barakId: '',
-                nomorKamar: '',
-                jenis: '',
-                jumlahTotal: '',
-                baik: '',
-                rusakRingan: '',
-                rusakBerat: '',
-                catatan: ''
-            };
+            this.inventarisForm = { barakId: '', nomorKamar: '', jenis: '', jumlahTotal: '', baik: '', rusakRingan: '', rusakBerat: '', catatan: '' };
             this.daftarKamarPilihan = [];
             this.inventarisModalOpen = true;
         },
-
         openEditInventarisModal(item) {
             this.isEditInventaris = true;
             this.inventarisForm = { ...item };
             this.updateDaftarKamar();
             this.inventarisModalOpen = true;
         },
-
         updateDaftarKamar() {
             this.daftarKamarPilihan = [];
             if (!this.inventarisForm.barakId) return;
-
-            const barak = this.barak.find(b => b.id == this.inventarisForm.barakId);
-            if (barak?.daftarKamar) {
-                this.daftarKamarPilihan = barak.daftarKamar;
-            }
+            const b = this.barak.find(b => String(b.id) === String(this.inventarisForm.barakId));
+            if (b?.daftarKamar) this.daftarKamarPilihan = b.daftarKamar;
         },
-
         saveInventaris() {
-            if (!this.inventarisForm.barakId || !this.inventarisForm.jenis?.trim()) {
+            if (!this.inventarisForm.barakId || !this.inventarisForm.jenis?.trim())
                 return Swal.fire('Error', 'Barak dan jenis inventaris wajib diisi', 'error');
-            }
-
-            Swal.fire({
-                title: this.isEditInventaris ? 'Simpan perubahan?' : 'Tambah inventaris?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb'
-            }).then((result) => {
-                if (!result.isConfirmed) return;
-
-                const barak = this.barak.find(b => b.id == this.inventarisForm.barakId);
-                const barakName = barak ? `${barak.sisi} – Lt ${barak.lantai}` : 'Tidak diketahui';
-
-                if (this.isEditInventaris) {
-                    const idx = this.inventaris.findIndex(i => i.id === this.inventarisForm.id);
-                    if (idx !== -1) {
-                        this.inventaris[idx] = { ...this.inventarisForm, barak: barakName };
-                    }
-                } else {
-                    this.inventaris.push({
-                        id: this.inventaris.length + 1,
-                        barak: barakName,
-                        ...this.inventarisForm
-                    });
-                }
-
-                this.inventarisModalOpen = false;
-                Swal.fire('Sukses', 'Data inventaris tersimpan', 'success');
-            });
+            Swal.fire({ title: this.isEditInventaris ? 'Simpan perubahan?' : 'Tambah inventaris?', icon: 'question', showCancelButton: true, confirmButtonColor: '#3b82f6', cancelButtonText: 'Batal' })
+                .then(r => {
+                    if (!r.isConfirmed) return;
+                    const b = this.barak.find(b => String(b.id) === String(this.inventarisForm.barakId));
+                    const barakName = b ? `${b.sisi} – Lt.${b.lantai}` : 'Tidak diketahui';
+                    this.inventaris = this.isEditInventaris
+                        ? this.inventaris.map(i => i.id === this.inventarisForm.id ? { ...this.inventarisForm, barak: barakName } : i)
+                        : [...this.inventaris, { id: Date.now(), barak: barakName, ...this.inventarisForm }];
+                    this.inventarisModalOpen = false;
+                    if (this.currentPage === 'dashboard' || this.currentPage === 'laporan') this._scheduleChartRender();
+                    Swal.fire({ icon: 'success', title: 'Sukses', text: 'Data inventaris tersimpan', timer: 1500, showConfirmButton: false });
+                });
         },
 
-        // ──────────────────────────────────────────────
-        // Fungsi Laporan & Statistik (lanjutan)
-        // ──────────────────────────────────────────────
-        get penghuniAktif() {
-            return this.penghuni.filter(p => p.status === 'aktif').length;
-        },
-
-        get kamarKosong() {
-            return this.barak.reduce((sum, b) => sum + b.daftarKamar.filter(k => k.status === 'kosong').length, 0);
-        },
-
-        // ──────────────────────────────────────────────
-        // Fungsi Profil & Pengaturan (sudah lengkap sebelumnya, hanya ditata ulang)
-        // ──────────────────────────────────────────────
-        openProfileModal(tab = 'profile') {
-            this.activeTab = tab;
-            this.profileModalOpen = true;
-        },
-
+        // ══════════════════════════════════════════════
+        // PROFIL & PENGATURAN
+        // ══════════════════════════════════════════════
+        openProfileModal(tab = 'profile') { this.activeTab = tab; this.profileModalOpen = true; },
         uploadPhoto(event) {
             const file = event.target.files[0];
-            if (!file || !file.type.startsWith('image/')) {
-                return Swal.fire('Error', 'Hanya file gambar yang diperbolehkan', 'error');
-            }
+            if (!file?.type.startsWith('image/')) return Swal.fire('Error', 'Hanya file gambar yang diperbolehkan', 'error');
             const reader = new FileReader();
-            reader.onload = e => this.userProfile.photo = e.target.result;
+            reader.onload = e => { this.userProfile = { ...this.userProfile, photo: e.target.result }; };
             reader.readAsDataURL(file);
         },
+        saveProfile() {
+            if (!this.userProfile.name?.trim() || !this.userProfile.email?.trim()) return Swal.fire('Error', 'Nama dan Email wajib diisi', 'error');
+            this.saving = true;
+            setTimeout(() => { this.saveUserData(); this.saving = false; this.profileModalOpen = false; Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Profil diperbarui', timer: 1500, showConfirmButton: false }); }, 800);
+        },
+        saveSettings() {
+            if (this.settings.newPassword || this.settings.oldPassword) {
+                if (this.settings.newPassword !== this.settings.confirmPassword) return Swal.fire('Error', 'Konfirmasi kata sandi tidak cocok', 'error');
+                if (this.settings.newPassword.length < 6) return Swal.fire('Error', 'Kata sandi minimal 6 karakter', 'error');
+            }
+            this.saving = true;
+            setTimeout(() => { this.saveUserData(); this.settings.oldPassword = ''; this.settings.newPassword = ''; this.settings.confirmPassword = ''; this.saving = false; this.profileModalOpen = false; Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Pengaturan disimpan', timer: 1500, showConfirmButton: false }); }, 800);
+        },
 
-        // ──────────────────────────────────────────────
-        // Logout yang konsisten dengan login
-        // ──────────────────────────────────────────────
+        // ══════════════════════════════════════════════
+        // LOGOUT & RESET
+        // ══════════════════════════════════════════════
         handleLogout() {
-            Swal.fire({
-                title: 'Keluar dari Sistem?',
-                text: "Anda akan dialihkan ke halaman login",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Keluar',
-                cancelButtonText: 'Batal'
-            }).then(result => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('isLoggedIn');
-                    localStorage.removeItem('loggedInUser');
-                    localStorage.removeItem('isLoggedIn');
-                    location.reload();
-                    // optional: jangan hapus rememberedUser agar tetap ingat username
-                    Swal.fire({
-                        title: 'Berhasil Keluar',
-                        text: 'Sampai jumpa lagi!',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.replace('login.html');
-                    });
-                }
-            });
+            Swal.fire({ title: 'Keluar dari Sistem?', text: 'Anda akan dialihkan ke halaman login', icon: 'question', showCancelButton: true, confirmButtonColor: '#3b82f6', confirmButtonText: 'Ya, Keluar', cancelButtonText: 'Batal' })
+                .then(r => { if (r.isConfirmed) { this._destroyAllCharts(); localStorage.removeItem('isLoggedIn'); localStorage.removeItem('loggedInUser'); window.location.replace('login.html'); } });
         },
-        // Optional: tampilkan nama user di navbar
-        get currentUser() {
-            return localStorage.getItem('loggedInUser') || 'Pengguna';
-        },
-        // ──────────────────────────────────────────────
-        // Fungsi Reset Semua Data (sudah ada, hanya ditata lebih rapi)
-        // ──────────────────────────────────────────────
         confirmResetAll() {
-            Swal.fire({
-                title: 'HAPUS SEMUA DATA?',
-                html: 'Tindakan ini <b>tidak dapat dibatalkan</b>!<br>Ketik <b>deiyai2026</b> untuk konfirmasi',
-                input: 'text',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Hapus Permanen',
-                preConfirm: (kode) => {
-                    if (kode?.trim() !== 'deiyai2026') {
-                        Swal.showValidationMessage('Kode konfirmasi salah');
-                        return false;
-                    }
-                    return true;
-                }
-            }).then(result => {
-                if (result.isConfirmed) {
-                    localStorage.clear();
-                    Swal.fire({
-                        title: 'Data dihapus',
-                        text: 'Aplikasi akan dimuat ulang...',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => location.reload(true));
-                }
-            });
+            Swal.fire({ title: 'HAPUS SEMUA DATA?', html: 'Tindakan ini <b>tidak dapat dibatalkan</b>!<br>Ketik <b>deiyai2026</b> untuk konfirmasi', input: 'text', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Hapus Permanen', preConfirm: kode => { if (kode?.trim() !== 'deiyai2026') { Swal.showValidationMessage('Kode salah'); return false; } return true; } })
+                .then(r => { if (r.isConfirmed) { this._destroyAllCharts(); localStorage.clear(); Swal.fire({ title: 'Data dihapus', text: 'Memuat ulang...', icon: 'success', timer: 1500, showConfirmButton: false }).then(() => location.reload(true)); } });
         },
 
-        // ──────────────────────────────────────────────
-        // Getter Pendukung UI (sudah ada sebagian, ditambah sedikit)
-        // ──────────────────────────────────────────────
-        get penghuniTotal() {
-            return this.penghuni.length;
-        },
+        // ══════════════════════════════════════════════
+        // EXPORT & LAPORAN
+        // ══════════════════════════════════════════════
+        isExporting() { return this.exporting; },
+        getExportFormat() { return this.exportFormat; },
 
-        get penghuniDitempatkan() {
-            return this.penghuni.filter(p => p.kamarSaatIni !== null).length;
-        },
-
-        // Jika ada fungsi lain yang masih ingin ditambahkan (misal print laporan, export CSV, dll),
-        // bisa dilanjutkan di sini
-        // ──────────────────────────────────────────────
-        // EXPORT DATA - PDF & EXCEL (VERSI FINAL AKURAT & KONSISTEN)
-        // ──────────────────────────────────────────────
         exportPDF() {
-            this.exporting = true;
-            this.exportFormat = 'PDF';
-
+            this.exporting = true; this.exportFormat = 'PDF';
             try {
                 const { jsPDF } = window.jspdf;
                 if (!jsPDF) throw new Error('jsPDF tidak terload');
-
                 const doc = new jsPDF();
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-
-                // Header Laporan
-                doc.setFontSize(18);
-                doc.setTextColor(37, 99, 235);
-                doc.text("Laporan SIMASRA - Asrama Kabupaten Deiyai", pageWidth / 2, 20, { align: "center" });
-
-                doc.setFontSize(11);
-                doc.setTextColor(100);
-                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, 30, { align: "center" });
-
-                let yPos = 45;
-
-                // Ringkasan Statistik
-                doc.setFontSize(14);
-                doc.setTextColor(0);
-                doc.text("Ringkasan Statistik Saat Ini", 20, yPos);
-                yPos += 10;
-
-                doc.setFontSize(11);
-                const summary = [
-                    ["Penghuni Aktif", this.penghuniAktif || 0],
-                    ["Tingkat Hunian", `${this.hunianPersen || 0}%`],
-                    ["Alumni Tahun Ini", this.alumniTahunIni || 0],
-                    ["Kamar Kosong", this.kamarKosong || 0],
-                    ["Total Barak", this.totalBarak || 0],
-                    ["Total Kamar", this.totalKamarComputed || 0]
-                ];
-
+                const pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+                doc.setFontSize(18); doc.setTextColor(37, 99, 235);
+                doc.text('Laporan SIMASRA – Asrama Kabupaten Deiyai', pw / 2, 20, { align: 'center' });
+                doc.setFontSize(10); doc.setTextColor(100);
+                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, pw / 2, 29, { align: 'center' });
+                let y = 42;
+                doc.setFontSize(13); doc.setTextColor(0); doc.text('Ringkasan Statistik', 20, y); y += 8;
                 doc.autoTable({
-                    startY: yPos,
-                    head: [['Kategori', 'Jumlah']],
-                    body: summary,
-                    theme: 'grid',
-                    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
-                    styles: { fontSize: 10, cellPadding: 4 },
-                    margin: { left: 20, right: 20 },
-                    columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 40, halign: 'center' } }
+                    startY: y, head: [['Kategori', 'Jumlah']],
+                    body: [
+                        ['Penghuni Aktif', this.penghuniAktif], ['Tingkat Hunian', `${this.hunianPersen}%`],
+                        ['Alumni Tahun Ini', this.alumniTahunIni], ['Kamar Kosong (0 penghuni)', this.kamarKosong],
+                        ['Slot Tersedia', this.slotTersedia], ['Total Barak', this.totalBarak],
+                        ['Total Kamar', this.totalKamarComputed], ['Kapasitas per Kamar', `Maks. ${this.MAX_PENGHUNI_PER_KAMAR} orang`]
+                    ],
+                    theme: 'grid', headStyles: { fillColor: [37, 99, 235], textColor: 255 }, styles: { fontSize: 10 }, margin: { left: 20, right: 20 }
                 });
-
-                yPos = doc.lastAutoTable.finalY + 20;
-
-                // Penghuni per Distrik
-                if (this.laporanDistrik?.length > 0) {
-                    doc.setFontSize(14);
-                    doc.text("Penghuni Aktif per Distrik", 20, yPos);
-                    yPos += 8;
-
-                    const distrikData = this.laporanDistrik.map(d => [d.distrik, d.jumlah]);
-                    doc.autoTable({
-                        startY: yPos,
-                        head: [['Distrik', 'Jumlah Orang']],
-                        body: distrikData,
-                        theme: 'striped',
-                        headStyles: { fillColor: [66, 139, 202] },
-                        styles: { fontSize: 10, cellPadding: 3 },
-                        margin: { left: 20, right: 20 }
-                    });
-                    yPos = doc.lastAutoTable.finalY + 15;
+                y = doc.lastAutoTable.finalY + 15;
+                if (this.laporanDistrik.length) {
+                    doc.setFontSize(13); doc.text('Penghuni per Distrik', 20, y); y += 8;
+                    doc.autoTable({ startY: y, head: [['Distrik', 'Jumlah']], body: this.laporanDistrik.map(d => [d.distrik, d.jumlah]), theme: 'striped', headStyles: { fillColor: [66, 139, 202] }, styles: { fontSize: 10 }, margin: { left: 20, right: 20 } });
+                    y = doc.lastAutoTable.finalY + 15;
                 }
-
-                // Penghuni per Jenjang
-                if (this.laporanJenjang?.length > 0) {
-                    doc.setFontSize(14);
-                    doc.text("Penghuni per Jenjang Pendidikan", 20, yPos);
-                    yPos += 8;
-
-                    const jenjangData = this.laporanJenjang.map(j => [j.jenjang, j.jumlah]);
-                    doc.autoTable({
-                        startY: yPos,
-                        head: [['Jenjang', 'Jumlah Orang']],
-                        body: jenjangData,
-                        theme: 'striped',
-                        headStyles: { fillColor: [66, 139, 202] },
-                        styles: { fontSize: 10, cellPadding: 3 },
-                        margin: { left: 20, right: 20 }
-                    });
+                if (this.laporanJenjang.length) {
+                    doc.setFontSize(13); doc.text('Penghuni per Jenjang', 20, y); y += 8;
+                    doc.autoTable({ startY: y, head: [['Jenjang', 'Jumlah']], body: this.laporanJenjang.map(j => [j.jenjang, j.jumlah]), theme: 'striped', headStyles: { fillColor: [66, 139, 202] }, styles: { fontSize: 10 }, margin: { left: 20, right: 20 } });
                 }
-
-                // Footer
-                const pageCount = doc.internal.getNumberOfPages();
-                for (let i = 1; i <= pageCount; i++) {
-                    doc.setPage(i);
-                    doc.setFontSize(9);
-                    doc.setTextColor(150);
-                    doc.text(`Halaman ${i} dari ${pageCount} • SIMASRA © ${new Date().getFullYear()}`, pageWidth / 2, pageHeight - 10, { align: "center" });
-                }
-
+                const pages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setFontSize(9); doc.setTextColor(150); doc.text(`Hal ${i}/${pages} • SIMASRA © ${new Date().getFullYear()}`, pw / 2, ph - 10, { align: 'center' }); }
                 doc.save(`laporan_simasra_${new Date().toISOString().split('T')[0]}.pdf`);
-            } catch (err) {
-                console.error('Gagal export PDF:', err);
-                Swal.fire('Error', 'Gagal membuat file PDF. Cek console atau koneksi CDN.', 'error');
-            } finally {
-                this.exporting = false;
-                this.exportFormat = '';
-            }
+            } catch (err) { console.error(err); Swal.fire('Error', 'Gagal membuat PDF. Pastikan koneksi internet aktif.', 'error'); }
+            finally { this.exporting = false; this.exportFormat = ''; }
         },
 
         exportExcel() {
-            this.exporting = true;
-            this.exportFormat = 'Excel';
-
+            this.exporting = true; this.exportFormat = 'Excel';
             try {
                 if (typeof XLSX === 'undefined') throw new Error('SheetJS tidak terload');
-
                 const wb = XLSX.utils.book_new();
-
-                // Sheet 1: Ringkasan Statistik
-                const summaryData = [
-                    ["Kategori", "Jumlah"],
-                    ["Penghuni Aktif Saat Ini", this.penghuniAktif || 0],
-                    ["Tingkat Hunian", `${this.hunianPersen || 0}%`],
-                    ["Alumni Tahun Ini", this.alumniTahunIni || 0],
-                    ["Kamar Kosong", this.kamarKosong || 0],
-                    ["Total Barak", this.totalBarak || 0],
-                    ["Total Kamar", this.totalKamarComputed || 0]
-                ];
-                const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-                XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
-
-                // Sheet 2: Penghuni per Distrik
-                if (this.laporanDistrik?.length > 0) {
-                    const distrikData = [["Distrik", "Jumlah Orang"], ...this.laporanDistrik.map(d => [d.distrik, d.jumlah])];
-                    const wsDistrik = XLSX.utils.aoa_to_sheet(distrikData);
-                    XLSX.utils.book_append_sheet(wb, wsDistrik, "Distrik");
-                }
-
-                // Sheet 3: Penghuni per Jenjang
-                if (this.laporanJenjang?.length > 0) {
-                    const jenjangData = [["Jenjang", "Jumlah Orang"], ...this.laporanJenjang.map(j => [j.jenjang, j.jumlah])];
-                    const wsJenjang = XLSX.utils.aoa_to_sheet(jenjangData);
-                    XLSX.utils.book_append_sheet(wb, wsJenjang, "Jenjang");
-                }
-
-                // Auto lebar kolom
-                [wsSummary, wb.Sheets["Distrik"], wb.Sheets["Jenjang"]].forEach(ws => {
-                    if (ws) {
-                        const range = XLSX.utils.decode_range(ws['!ref']);
-                        for (let C = range.s.c; C <= range.e.c; ++C) {
-                            let maxWidth = 10;
-                            for (let R = range.s.r; R <= range.e.r; ++R) {
-                                const cell = ws[XLSX.utils.encode_cell({ c: C, r: R })];
-                                if (cell && cell.v) {
-                                    const len = cell.v.toString().length;
-                                    if (len > maxWidth) maxWidth = len;
-                                }
-                            }
-                            ws['!cols'] = ws['!cols'] || [];
-                            ws['!cols'][C] = { wch: maxWidth + 2 };
-                        }
-                    }
-                });
-
-                const filename = `laporan_simasra_${new Date().toISOString().split('T')[0]}.xlsx`;
-                XLSX.writeFile(wb, filename);
-
-                Swal.fire('Sukses', `File Excel "${filename}" telah diunduh`, 'success');
-            } catch (err) {
-                console.error('Gagal export Excel:', err);
-                Swal.fire('Error', 'Gagal membuat file Excel. Cek koneksi CDN SheetJS.', 'error');
-            } finally {
-                this.exporting = false;
-                this.exportFormat = '';
-            }
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+                    ['Kategori', 'Jumlah'], ['Penghuni Aktif', this.penghuniAktif], ['Tingkat Hunian (%)', this.hunianPersen],
+                    ['Alumni Tahun Ini', this.alumniTahunIni], ['Kamar Kosong', this.kamarKosong], ['Slot Tersedia', this.slotTersedia],
+                    ['Total Barak', this.totalBarak], ['Total Kamar', this.totalKamarComputed], ['Kapasitas per Kamar', `Maks. ${this.MAX_PENGHUNI_PER_KAMAR} orang`]
+                ]), 'Ringkasan');
+                if (this.penghuni.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['NIK', 'Nama', 'Jenjang', 'Distrik', 'Tahun Masuk', 'Status', 'Kamar Saat Ini', 'Tanggal Keluar'], ...this.penghuni.map(p => [p.nik, p.nama, p.jenjang, p.distrik, p.tahun_masuk, p.status, this.getKamarSaatIni(p) || '-', p.tanggalKeluar || '-'])]), 'Data Penghuni');
+                if (this.laporanDistrik.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Distrik', 'Jumlah'], ...this.laporanDistrik.map(d => [d.distrik, d.jumlah])]), 'Per Distrik');
+                if (this.inventaris.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Barak', 'Kamar', 'Jenis', 'Total', 'Baik', 'Rusak Ringan', 'Rusak Berat', 'Catatan'], ...this.inventaris.map(i => [i.barak, i.nomorKamar || '-', i.jenis, i.jumlahTotal, i.baik, i.rusakRingan, i.rusakBerat, i.catatan || ''])]), 'Inventaris');
+                XLSX.writeFile(wb, `laporan_simasra_${new Date().toISOString().split('T')[0]}.xlsx`);
+                Swal.fire({ icon: 'success', title: 'Excel Diunduh!', timer: 1500, showConfirmButton: false });
+            } catch (err) { console.error(err); Swal.fire('Error', 'Gagal membuat Excel.', 'error'); }
+            finally { this.exporting = false; this.exportFormat = ''; }
         },
-
-        isExporting() { return this.exporting || false; },
-        getExportFormat() { return this.exportFormat || ''; },
 
         backupAllData() {
-            const backup = {
-                penghuni: this.penghuni,
-                barak: this.barak,
-                asramaList: this.asramaList,
-                inventaris: this.inventaris,
-                userProfile: this.userProfile,
-                timestamp: new Date().toISOString()
-            };
+            const backup = { penghuni: this.penghuni, barak: this.barak, inventaris: this.inventaris, userProfile: this.userProfile, timestamp: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `simasra_backup_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            Swal.fire('Sukses', 'Backup data berhasil diunduh', 'success');
+            const a = document.createElement('a'); a.href = url; a.download = `simasra_backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url);
+            Swal.fire({ icon: 'success', title: 'Backup berhasil diunduh!', timer: 1500, showConfirmButton: false });
         },
 
-
-        // ──────────────────────────────────────────────
-        // Generate Laporan (Custom / Ringkasan)
-        // ──────────────────────────────────────────────
         generateLaporan() {
-            // Optional: Tampilkan loading
-            this.exporting = true;
-            this.exportFormat = 'Laporan';
-
             Swal.fire({
-                title: 'Generate Laporan',
-                html: 'Pilih jenis laporan yang ingin dibuat:',
-                showCancelButton: true,
-                confirmButtonText: 'Lanjutkan',
-                cancelButtonText: 'Batal',
-                showDenyButton: true,
-                denyButtonText: 'Statistik Bulanan',
-                confirmButtonColor: '#2563eb',
-                denyButtonColor: '#059669',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Contoh: Generate laporan lengkap (semua data)
-                    this.generateFullReport();
-                } else if (result.isDenied) {
-                    // Contoh: Generate statistik bulanan/tahunan
-                    this.generateMonthlyStats();
-                }
-            }).finally(() => {
-                this.exporting = false;
-                this.exportFormat = '';
-            });
+                title: `Laporan Tahun ${this.filterTahunLaporan}`,
+                html: `<ul class="text-left space-y-2 text-sm">
+                    <li>Penghuni Aktif: <strong>${this.penghuniAktif}</strong></li>
+                    <li>Alumni Tahun Ini: <strong>${this.alumniTahunIni}</strong></li>
+                    <li>Tingkat Hunian: <strong>${this.hunianPersen}%</strong></li>
+                    <li>Slot Tersedia: <strong>${this.slotTersedia}</strong></li>
+                    <li>Distrik Terbanyak: <strong>${this.laporanDistrik[0]?.distrik || '-'} (${this.laporanDistrik[0]?.jumlah || 0})</strong></li>
+                    <li>Total Inventaris: <strong>${this.totalInventaris}</strong></li>
+                </ul>`,
+                icon: 'info', confirmButtonText: 'Download PDF', showCancelButton: true, cancelButtonText: 'Tutup'
+            }).then(r => { if (r.isConfirmed) this.exportPDF(); });
         },
 
-        // Helper: Generate laporan lengkap (bisa custom)
-        generateFullReport() {
-            // Logika custom, misal gabungkan data penghuni + asrama + inventaris
-            const reportData = {
-                tanggal: new Date().toLocaleDateString('id-ID'),
-                totalPenghuni: this.penghuniAktif,
-                totalAsrama: this.asramaList.length,
-                hunianRataRata: this.hunianPersen,
-                inventarisBaik: this.totalBaik,
-                inventarisRusak: this.totalRusakRingan + this.totalRusakBerat,
-                // Tambah data lain sesuai kebutuhan
-            };
+        // ══════════════════════════════════════════════
+        // INITIAL DATA
+        // ══════════════════════════════════════════════
+        resetInitialData() {
+            this.penghuni = [
+                { nik: '9102017501010001', nama: 'Yohanis Duwiri', nisn_nim: '123456789012', distrik: 'Tigi', jenjang: 'SMA', tahun_masuk: 2023, status: 'aktif', jenis_kelamin: 'Laki-laki', no_hp: '0812xxxxxxx', kamarSaatIni: null, tanggalKeluar: null },
+                { nik: '9102026805020002', nama: 'Maria Kogoya', nisn_nim: '987654321098', distrik: 'Deiyai', jenjang: 'Mahasiswa', tahun_masuk: 2022, status: 'aktif', jenis_kelamin: 'Perempuan', no_hp: '0821xxxxxxx', kamarSaatIni: null, tanggalKeluar: null },
+                { nik: '9102035508030003', nama: 'Daniel Wonda', nisn_nim: '', distrik: 'Tigi Barat', jenjang: 'SMA', tahun_masuk: 2021, status: 'alumni', jenis_kelamin: 'Laki-laki', no_hp: '', kamarSaatIni: null, tanggalKeluar: '2024-06-15' },
+                { nik: '9102044409040004', nama: 'Siska Tabuni', nisn_nim: '1122334455', distrik: 'Paniai', jenjang: 'Mahasiswa', tahun_masuk: 2024, status: 'aktif', jenis_kelamin: 'Perempuan', no_hp: '0852xxxxxxx', kamarSaatIni: null, tanggalKeluar: null },
+                { nik: '9102055210050005', nama: 'Oktovianus Mote', nisn_nim: '', distrik: 'Tigi Timur', jenjang: 'SMA', tahun_masuk: 2024, status: 'aktif', jenis_kelamin: 'Laki-laki', no_hp: '', kamarSaatIni: null, tanggalKeluar: null },
+            ];
 
-            Swal.fire({
-                title: 'Laporan Lengkap Siap!',
-                html: `
-            <p>Total Penghuni Aktif: <strong>${reportData.totalPenghuni}</strong></p>
-            <p>Persentase Hunian: <strong>${reportData.hunianRataRata}%</strong></p>
-            <p>Inventaris Baik: <strong>${reportData.inventarisBaik}</strong></p>
-            <p>Inventaris Rusak: <strong>${reportData.inventarisRusak}</strong></p>
-        `,
-                icon: 'success',
-                confirmButtonText: 'Download PDF',
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    // Panggil exportPDF yang sudah ada, atau custom
-                    this.exportPDF();
-                }
-            });
-        },
+            const buatDaftarKamar = (lantai, mulai, jumlah) =>
+                Array.from({ length: jumlah }, (_, i) => ({
+                    nomor: `${lantai}${String(mulai + i).padStart(2, '0')}`,
+                    status: 'kosong',
+                    penghuniList: [],   // array NIK, maks MAX_PENGHUNI_PER_KAMAR
+                    tanggalMasuk: null,
+                    riwayat: []
+                }));
 
-        // Helper: Generate statistik bulanan/tahunan (contoh sederhana)
-        generateMonthlyStats() {
-            const tahun = this.filterTahunLaporan || new Date().getFullYear().toString();
-            const filtered = this.penghuni.filter(p => p.tahun_masuk == tahun && p.status === 'aktif');
+            this.barak = [
+                { id: 1, lantai: 1, sisi: 'Barak Kiri', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '101–107', daftarKamar: buatDaftarKamar(1, 1, 7) },
+                { id: 2, lantai: 1, sisi: 'Barak Kanan', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '108–114', daftarKamar: buatDaftarKamar(1, 8, 7) },
+                { id: 3, lantai: 2, sisi: 'Barak Kiri', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '201–207', daftarKamar: buatDaftarKamar(2, 1, 7) },
+                { id: 4, lantai: 2, sisi: 'Barak Kanan', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '208–214', daftarKamar: buatDaftarKamar(2, 8, 7) },
+                { id: 5, lantai: 3, sisi: 'Barak Kiri', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '301–307', daftarKamar: buatDaftarKamar(3, 1, 7) },
+                { id: 6, lantai: 3, sisi: 'Barak Kanan', kapasitas: 7, terisi: 0, status: 'kosong', rentangKamar: '308–314', daftarKamar: buatDaftarKamar(3, 8, 7) },
+            ];
 
-            Swal.fire({
-                title: `Statistik Tahun ${tahun}`,
-                html: `
-            <ul class="text-left">
-                <li>Penghuni Aktif: <strong>${filtered.length}</strong></li>
-                <li>Alumni Tahun Ini: <strong>${this.alumniTahunIni}</strong></li>
-                <li>Distrik Terbanyak: <strong>${this.laporanDistrik[0]?.distrik || '-'}</strong></li>
-            </ul>
-        `,
-                icon: 'info',
-                confirmButtonText: 'OK',
-            });
-        },
+            this.inventaris = [];
+            this.saveToStorage();
+        }
+
     }));
 });
-

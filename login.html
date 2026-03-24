@@ -1,221 +1,221 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth" :class="{ 'dark': darkMode }" x-data="loginApp">
+<html lang="id" x-data="loginApp" :class="{ 'dark': darkMode }">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - SIMASRA Asrama Kabupaten Deiyai Kota Study Jayapura</title>
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#2563eb',
-                        primarydark: '#1d4ed8',
-                    }
-                }
-            }
-        }
-    </script>
+    <title>Login — SIMASRA Asrama Deiyai Jayapura</title>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Login CSS (font import ada di dalam file ini) -->
+    <link rel="stylesheet" href="asset/css/login.css">
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col transition-colors duration-300">
-    <!-- Navbar Atas -->
-    <header class="bg-white dark:bg-gray-800 shadow-sm">
-        <div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
-            <div class="flex items-center space-x-4">
-                <i class="fas fa-building text-3xl text-primary"></i>
+<body>
+
+    <!-- ── Cinematic Background ── -->
+    <div class="scene">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="page-wrap">
+
+        <!-- ── Topbar ── -->
+        <header class="topbar">
+            <div class="topbar-brand">
+                <img src="asset/img/logo-login.png" alt="Logo ASDEI" class="topbar-logo">
                 <div>
-                    <h1 class="text-xl font-bold">ASRAMA DEIYAI</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Sistem Asrama Kabupaten Deiyai Kota Study
-                        Jayapura</p>
+                    <div class="topbar-title">ASRAMA DEIYAI</div>
+                    <div class="topbar-sub">Kab. Deiyai &middot; Kota Studi Jayapura</div>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <button @click="toggleDarkMode()"
-                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                    <i x-show="!darkMode" class="fas fa-moon text-xl text-gray-600 dark:text-gray-300"></i>
-                    <i x-show="darkMode" class="fas fa-sun text-xl text-yellow-400"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+            <button class="toggle-btn" @click="toggleDarkMode()" :title="darkMode ? 'Mode Terang' : 'Mode Gelap'">
+                <i x-show="!darkMode" class="fas fa-moon"></i>
+                <i x-show="darkMode" class="fas fa-sun" style="color:#fbbf24"></i>
+            </button>
+        </header>
 
-    <!-- Main Login Form -->
-    <main class="flex-1 flex items-center justify-center p-6">
-        <div
-            class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
-            <!-- Header Biru -->
-            <div class="bg-primary p-8 text-center">
-                <div class="flex justify-center mb-4">
-                    <i class="fas fa-shield-alt text-6xl text-white opacity-90"></i>
+        <!-- ── Main ── -->
+        <main class="main-area">
+            <div class="card">
+
+                <!-- LEFT: Brand Panel -->
+                <div class="brand-panel">
+                    <div class="logo-ring">
+                        <img src="asset/img/logo-login.png" alt="Logo ASDEI">
+                    </div>
+                    <div class="brand-name">ASDEI</div>
+                    <div class="brand-line"></div>
+                    <div class="brand-desc">
+                        Asrama Mahasiswa<br>
+                        Kabupaten Deiyai<br>
+                        Kota Studi Jayapura
+                    </div>
+                    <div class="brand-chip">
+                        <i class="fas fa-shield-halved"></i>SIMASRA v2.0
+                    </div>
                 </div>
-                <h1 class="text-3xl font-bold text-white">Login Admin</h1>
-                <p class="text-white/80 mt-2">Akses Sistem Manajemen Asrama Kabupaten Deiyai Kota Study Jayapura</p>
-            </div>
 
-            <!-- Form -->
-            <div class="p-8">
-                <form @submit.prevent="handleLogin" class="space-y-6">
-                    <!-- Username / Email -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Username / Email
-                        </label>
-                        <div class="relative">
+                <!-- RIGHT: Form Panel -->
+                <div class="form-panel">
+
+                    <div class="f-heading fu">Selamat Datang &#128075;</div>
+                    <div class="f-sub fu d1">Masuk ke panel administrasi asrama</div>
+
+                    <!-- Error Message -->
+                    <div x-show="errorMessage" x-transition class="err-box">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <span x-text="errorMessage"></span>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="f-field fu d2">
+                        <label class="f-label">Username / Email</label>
+                        <div class="f-input-wrap">
                             <input type="text" x-model="form.username" required autofocus
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white transition"
                                 placeholder="Masukkan username atau email">
-                            <i class="fas fa-user absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <span class="f-icon"><i class="fas fa-user"></i></span>
                         </div>
                     </div>
 
                     <!-- Password -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Kata Sandi
-                        </label>
-                        <div class="relative">
+                    <div class="f-field fu d3">
+                        <label class="f-label">Kata Sandi</label>
+                        <div class="f-input-wrap">
                             <input :type="showPassword ? 'text' : 'password'" x-model="form.password" required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white transition"
                                 placeholder="Masukkan kata sandi">
-                            <button type="button" @click="showPassword = !showPassword"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                            <button type="button" class="f-icon btn" @click="showPassword = !showPassword">
                                 <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Remember Me -->
-                    <div class="flex items-center">
-                        <input type="checkbox" x-model="form.remember" id="remember"
-                            class="rounded border-gray-300 text-primary focus:ring-primary">
-                        <label for="remember" class="ml-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-                            Ingat saya
-                        </label>
+                    <div class="rem-row fu d4">
+                        <input type="checkbox" x-model="form.remember" id="remember">
+                        <label for="remember">Ingat saya</label>
                     </div>
 
-                    <!-- Tombol Login -->
-                    <button type="submit" :disabled="loading"
-                        class="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primarydark transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md">
-                        <span x-show="!loading">Masuk ke Dashboard</span>
-                        <span x-show="loading"
-                            class="animate-spin inline-block h-5 w-5 border-2 border-t-transparent border-white rounded-full"></span>
-                        <span x-show="loading">Memproses...</span>
+                    <!-- Submit -->
+                    <button class="btn-submit fu d5" @click="handleLogin" :disabled="loading">
+                        <template x-if="!loading">
+                            <span style="display:flex;align-items:center;gap:8px;position:relative;">
+                                <i class="fas fa-right-to-bracket"></i>
+                                Masuk ke Dashboard
+                            </span>
+                        </template>
+                        <template x-if="loading">
+                            <span style="display:flex;align-items:center;gap:10px;">
+                                <span class="spin-ring"></span>
+                                Memproses...
+                            </span>
+                        </template>
                     </button>
-                </form>
 
-                <!-- Link Tambahan -->
-                <div class="mt-6 text-center text-sm space-x-4">
-                    <a href="#" class="text-primary hover:underline">Lupa kata sandi?</a>
-                    <span class="text-gray-400">|</span>
-                    <a href="#" class="text-primary hover:underline">Hubungi Admin</a>
+                    <!-- Footer Links -->
+                    <div class="f-footer fu d6">
+                        <a href="#">Lupa kata sandi?</a>
+                        <span>&middot;</span>
+                        <a href="#">Hubungi Admin</a>
+                    </div>
+
                 </div>
-            </div>
-        </div>
-    </main>
+                <!-- /form-panel -->
 
-    <!-- Alpine.js Logic -->
+            </div>
+            <!-- /card -->
+        </main>
+
+    </div>
+    <!-- /page-wrap -->
+
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('loginApp', () => ({
-                darkMode: localStorage.theme === 'dark' ||
-                    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+                darkMode:
+                    localStorage.theme === 'dark' ||
+                    (!('theme' in localStorage) &&
+                        window.matchMedia('(prefers-color-scheme: dark)').matches),
                 showPassword: false,
                 loading: false,
                 errorMessage: '',
                 form: {
                     username: localStorage.getItem('rememberedUser') || '',
                     password: '',
-                    remember: !!localStorage.getItem('rememberedUser')
+                    remember: !!localStorage.getItem('rememberedUser'),
                 },
 
                 init() {
-                    this.updateDarkMode();
-                    if (!this.form.username) {
-                        this.$nextTick(() => {
-                            const input = document.querySelector('input[x-model="form.username"]');
-                            if (input) input.focus();
-                        });
-                    }
+                    this.applyDark();
                 },
 
-                updateDarkMode() {
+                applyDark() {
                     document.documentElement.classList.toggle('dark', this.darkMode);
                     localStorage.theme = this.darkMode ? 'dark' : 'light';
                 },
 
                 toggleDarkMode() {
                     this.darkMode = !this.darkMode;
-                    this.updateDarkMode();
+                    this.applyDark();
                 },
 
                 async handleLogin() {
                     this.errorMessage = '';
+
                     if (!this.form.username.trim() || !this.form.password.trim()) {
-                        this.errorMessage = 'Username dan kata sandi harus diisi';
+                        this.errorMessage = 'Username dan kata sandi harus diisi.';
                         return;
                     }
 
                     this.loading = true;
+                    await new Promise(r => setTimeout(r, 1000));
 
-                    // Simulasi API delay
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    const validUsers = {
-                        'admin': 'simasra2026',
-                        'pengurus': 'deiyai2026'
+                    const users = {
+                        admin: 'simasra2026',
+                        pengurus: 'deiyai2026',
                     };
 
-                    const enteredUser = this.form.username.trim().toLowerCase();
-                    const enteredPass = this.form.password.trim();
+                    const u = this.form.username.trim().toLowerCase();
+                    const p = this.form.password.trim();
 
-                    if (validUsers[enteredUser] && validUsers[enteredUser] === enteredPass) {
-                        // Login berhasil
+                    if (users[u] && users[u] === p) {
                         localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('loggedInUser', enteredUser);
+                        localStorage.setItem('loggedInUser', u);
+                        this.form.remember
+                            ? localStorage.setItem('rememberedUser', u)
+                            : localStorage.removeItem('rememberedUser');
 
-                        if (this.form.remember) {
-                            localStorage.setItem('rememberedUser', enteredUser);
-                        } else {
-                            localStorage.removeItem('rememberedUser');
-                        }
-
-                        Swal.fire({
-                            title: 'Login Berhasil',
-                            text: `Selamat datang kembali, ${enteredUser}!`,
+                        await Swal.fire({
+                            title: 'Login Berhasil!',
+                            text: `Selamat datang kembali, ${u}!`,
                             icon: 'success',
                             timer: 1400,
                             showConfirmButton: false,
                             allowOutsideClick: false,
                             allowEscapeKey: false,
-                            position: 'center'          // ← ini yang penting untuk memastikan center
-                        }).then(() => {
-                            window.location.replace('index.html');
                         });
+
+                        window.location.replace('index.html');
                     } else {
-                        this.errorMessage = 'Username atau kata sandi salah';
+                        this.errorMessage = 'Username atau kata sandi salah.';
                     }
 
                     this.loading = false;
-                }
+                },
             }));
         });
     </script>
+
 </body>
 
 </html>
