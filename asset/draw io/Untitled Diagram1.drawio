@@ -1,0 +1,88 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="ztT1VsJqCTHgGaSJBUyU">
+    <mxGraphModel dx="1413" dy="756" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="browser-box" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontStyle=1;fontSize=14;" value="BROWSER (Client-Side)" vertex="1">
+          <mxGeometry height="730" width="900" x="100" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1-box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="PRESENTATION LAYER" vertex="1">
+          <mxGeometry height="100" width="840" x="130" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="login-html" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="login.html" vertex="1">
+          <mxGeometry height="50" width="120" x="180" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="index-html" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="index.html" vertex="1">
+          <mxGeometry height="50" width="120" x="350" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="modals" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Modals (7x)" vertex="1">
+          <mxGeometry height="50" width="120" x="640" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="tailwind" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Tailwind CSS" vertex="1">
+          <mxGeometry height="50" width="120" x="780" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-l1-l2" edge="1" parent="1" source="layer1-box" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" target="layer2-box" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2-box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="STATE &amp; LOGIC LAYER" vertex="1">
+          <mxGeometry height="120" width="840" x="130" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="alpine" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="Alpine.js v3" vertex="1">
+          <mxGeometry height="40" width="150" x="150" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="state-penghuni" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="state: penghuni[]" vertex="1">
+          <mxGeometry height="40" width="140" x="340" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="state-barak" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="state: barak[]" vertex="1">
+          <mxGeometry height="40" width="130" x="630" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="state-inventaris" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="state: inventaris[]" vertex="1">
+          <mxGeometry height="40" width="140" x="790" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="business-rules" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Aturan Bisnis:&#xa;MAX_PENGHUNI_PER_KAMAR = 3" vertex="1">
+          <mxGeometry height="35" width="300" x="380" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-l2-l3" edge="1" parent="1" source="layer2-box" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" target="layer3-box" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3-box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="VISUALIZATION &amp; EXPORT LAYER" vertex="1">
+          <mxGeometry height="100" width="840" x="130" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="chartjs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Chart.js" vertex="1">
+          <mxGeometry height="50" width="110" x="170" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="jspdf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="jsPDF +&#xa;AutoTable" vertex="1">
+          <mxGeometry height="50" width="110" x="320" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="sheetjs" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="SheetJS&#xa;(XLSX)" vertex="1">
+          <mxGeometry height="50" width="110" x="660" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="swal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="SweetAlert2" vertex="1">
+          <mxGeometry height="50" width="110" x="800" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow-l3-l4" edge="1" parent="1" source="layer3-box" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" target="layer4-box" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="layer4-box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" value="STORAGE LAYER" vertex="1">
+          <mxGeometry height="90" width="840" x="130" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-penghuni" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="simasra_penghuni" vertex="1">
+          <mxGeometry height="40" width="140" x="180" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-barak" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="simasra_barak" vertex="1">
+          <mxGeometry height="40" width="140" x="350" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-inventaris" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="simasra_inventaris" vertex="1">
+          <mxGeometry height="40" width="150" x="610" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="storage-profile" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="user_profile" vertex="1">
+          <mxGeometry height="40" width="130" x="790" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="note-arsitektur" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="📌 Data disimpan di localStorage browser&#xa;📌 Semua proses berjalan di sisi klien (frontend-only)&#xa;📌 Tidak memerlukan server backend" vertex="1">
+          <mxGeometry height="60" width="400" x="200" y="650" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

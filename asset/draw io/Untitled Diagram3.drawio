@@ -1,0 +1,113 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="61OB4JLF99SoQfYTFHxY">
+    <mxGraphModel dx="1201" dy="643" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" value="START" vertex="1">
+          <mxGeometry height="40" width="100" x="480" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="proses1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Buka halaman&#xa;login.html" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="proses1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proses2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Input username&#xa;&amp; password" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" edge="1" parent="1" source="proses1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="proses2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="decision1" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Validasi&#xa;kredensial?" vertex="1">
+          <mxGeometry height="80" width="170" x="445" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" edge="1" parent="1" source="proses2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="decision1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="error" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Tampilkan&#xa;pesan error" vertex="1">
+          <mxGeometry height="50" width="130" x="770" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" edge="1" parent="1" source="decision1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="error" value="TIDAK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow5" edge="1" parent="1" source="error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="proses2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="835" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="proses3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Set item&#xa;isLoggedIn = true" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow6" edge="1" parent="1" source="decision1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="proses3" value="YA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proses4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Redirect ke&#xa;index.html" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow7" edge="1" parent="1" source="proses3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="proses4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proses5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Load data dari&#xa;localStorage" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow8" edge="1" parent="1" source="proses4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="proses5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="proses6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" value="Render Dashboard&#xa;(lihat menu)" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow9" edge="1" parent="1" source="proses5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="proses6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="menu-dash" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Dashboard" vertex="1">
+          <mxGeometry height="40" width="100" x="80" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="menu-penghuni" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Penghuni" vertex="1">
+          <mxGeometry height="40" width="100" x="200" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="menu-kamar" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Kamar" vertex="1">
+          <mxGeometry height="40" width="100" x="320" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="menu-inventaris" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Inventaris" vertex="1">
+          <mxGeometry height="40" width="100" x="680" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="menu-laporan" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Laporan" vertex="1">
+          <mxGeometry height="40" width="100" x="800" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="subprocess" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;strokeWidth=2;" value="PROSES SESUAI MENU&#xa;(CRUD / Assign / Ekspor / Logout)" vertex="1">
+          <mxGeometry height="60" width="860" x="100" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow10" edge="1" parent="1" source="proses6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" target="subprocess" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="save" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Simpan ke&#xa;localStorage" vertex="1">
+          <mxGeometry height="50" width="140" x="460" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow11" edge="1" parent="1" source="subprocess" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="save" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" value="END" vertex="1">
+          <mxGeometry height="40" width="100" x="480" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow12" edge="1" parent="1" source="save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="end" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=12;" value="LEGENDA" vertex="1">
+          <mxGeometry height="30" width="80" x="80" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-proses" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Proses" vertex="1">
+          <mxGeometry height="25" width="70" x="80" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-decision" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Decision" vertex="1">
+          <mxGeometry height="40" width="80" x="170" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-start" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Start/End" vertex="1">
+          <mxGeometry height="25" width="70" x="270" y="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

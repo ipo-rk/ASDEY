@@ -1,0 +1,182 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="I44IkAbFOMOicocGd8o9">
+    <mxGraphModel dx="1413" dy="756" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="entity-penghuni" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="PENGHUNI" vertex="1">
+          <mxGeometry height="280" width="260" x="80" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-pk" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="PK" vertex="1">
+          <mxGeometry height="30" width="30" as="geometry">
+            <mxRectangle height="30" width="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="entity-penghuni-pk-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="NIK (String)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" as="geometry">
+            <mxRectangle height="30" width="230" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="entity-penghuni-f1" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="30" as="geometry">
+            <mxRectangle height="30" width="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="entity-penghuni-f1-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Nama (String)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f2" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f2-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Jenjang (Enum)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f3" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f3-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Distrik (String)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f4" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f4-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Tahun_Masuk (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f5" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f5-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Status (Enum)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f6" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-penghuni-f6-text" parent="entity-penghuni" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#dae8fc;strokeColor=#6c8ebf;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="KamarSaatIni (FK)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;fillColor=#d5e8d4;strokeColor=#82b366;" value="BARAK" vertex="1">
+          <mxGeometry height="220" width="260" x="480" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-pk" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="PK" vertex="1">
+          <mxGeometry height="30" width="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-pk-text" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="ID (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f1" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f1-text" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Lantai (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f2" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f2-text" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Sisi (String)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f3" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f3-text" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Kapasitas (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f4" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-barak-f4-text" parent="entity-barak" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#d5e8d4;strokeColor=#82b366;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Status (Enum)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;fillColor=#fff2cc;strokeColor=#d6b656;" value="KAMAR" vertex="1">
+          <mxGeometry height="210" width="260" x="480" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-pk" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="PK" vertex="1">
+          <mxGeometry height="30" width="260" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-pk-text" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Nomor + BarakId" vertex="1">
+          <mxGeometry height="30" width="260" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-f1" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="260" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-f1-text" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Status (Enum)" vertex="1">
+          <mxGeometry height="30" width="260" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-f2" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="260" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-kamar-f2-text" parent="entity-kamar" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#fff2cc;strokeColor=#d6b656;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="PenghuniList (Array)" vertex="1">
+          <mxGeometry height="30" width="260" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris" parent="1" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;fillColor=#f8cecc;strokeColor=#b85450;" value="INVENTARIS" vertex="1">
+          <mxGeometry height="220" width="260" x="80" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-pk" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="PK" vertex="1">
+          <mxGeometry height="30" width="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-pk-text" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="ID (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f1" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f1-text" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="BarakId (FK)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f2" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f2-text" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Jenis (Enum)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f3" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f3-text" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="JumlahTotal (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f4" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;overflow=hidden;" value="" vertex="1">
+          <mxGeometry height="30" width="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="entity-inventaris-f4-text" parent="entity-inventaris" style="shape=partialRectangle;html=1;whiteSpace=wrap;connectable=0;fillColor=#f8cecc;strokeColor=#b85450;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=6;overflow=hidden;" value="Baik (Int)" vertex="1">
+          <mxGeometry height="30" width="230" x="30" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-barak-kamar" edge="1" parent="1" source="entity-barak" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERone;endFill=0;startArrow=ERone;startFill=0;strokeWidth=2;" target="entity-kamar" value="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel-barak-kamar-label" connectable="0" parent="rel-barak-kamar" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="memiliki" vertex="1">
+          <mxGeometry relative="1" x="-0.2" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-barak-inventaris" edge="1" parent="1" source="entity-barak" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;startArrow=ERone;startFill=0;strokeWidth=2;" target="entity-inventaris" value="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="190" />
+              <mxPoint x="410" y="670" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-barak-inventaris-label" connectable="0" parent="rel-barak-inventaris" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="terdapat di" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-kamar-penghuni" edge="1" parent="1" source="entity-kamar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;endFill=0;startArrow=ERmany;startFill=0;strokeWidth=2;dashed=1;" target="entity-penghuni" value="M">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="890" y="625" />
+              <mxPoint x="890" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel-kamar-penghuni-label" connectable="0" parent="rel-kamar-penghuni" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="ditempati (maks 3)" vertex="1">
+          <mxGeometry relative="1" x="-0.1" y="1" as="geometry">
+            <mxPoint x="1" y="68" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
